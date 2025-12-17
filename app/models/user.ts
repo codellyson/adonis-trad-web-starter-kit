@@ -19,8 +19,32 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @column()
   declare email: string
 
+  @column()
+  declare phone: string | null
+
   @column({ serializeAs: null })
   declare password: string
+
+  @column()
+  declare bvn: string | null
+
+  @column()
+  declare nin: string | null
+
+  @column()
+  declare kycStatus: 'pending' | 'verified' | 'failed'
+
+  @column()
+  declare virtualAccountNumber: string | null
+
+  @column()
+  declare virtualAccountBank: string | null
+
+  @column()
+  declare virtualAccountName: string | null
+
+  @column()
+  declare walletBalance: number
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
