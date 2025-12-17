@@ -6,6 +6,7 @@ const KycController = () => import('#controllers/kyc-controller')
 const WalletController = () => import('#controllers/wallet-controller')
 const CardController = () => import('#controllers/card-controller')
 const DevController = () => import('#controllers/dev-controller')
+const SubscriptionController = () => import('#controllers/subscription-controller')
 
 router.get('/', async ({ view }) => view.render('pages/landing')).as('home')
 
@@ -40,8 +41,28 @@ router
     router.post('/cards/:id/unfreeze', [CardController, 'unfreeze']).as('cards.unfreeze')
     router.post('/cards/:id/delete', [CardController, 'delete']).as('cards.delete')
 
+    // Subscriptions
+    router.get('/subscriptions', [SubscriptionController, 'index']).as('subscriptions.index')
+    router
+      .get('/subscriptions/service/:id', [SubscriptionController, 'show'])
+      .as('subscriptions.show')
+    router
+      .post('/subscriptions/service/:id/subscribe', [SubscriptionController, 'subscribe'])
+      .as('subscriptions.subscribe')
+    router
+      .get('/subscriptions/:id/details', [SubscriptionController, 'details'])
+      .as('subscriptions.details')
+    router
+      .post('/subscriptions/:id/activate', [SubscriptionController, 'markActive'])
+      .as('subscriptions.activate')
+    router
+      .post('/subscriptions/:id/cancel', [SubscriptionController, 'cancel'])
+      .as('subscriptions.cancel')
+
     // Dev/test routes (only work in development)
-    router.post('/dev/simulate-funding', [DevController, 'simulateFunding']).as('dev.simulate-funding')
+    router
+      .post('/dev/simulate-funding', [DevController, 'simulateFunding'])
+      .as('dev.simulate-funding')
   })
   .use(middleware.auth())
 

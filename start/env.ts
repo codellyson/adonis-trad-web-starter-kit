@@ -22,5 +22,6 @@ export default await Env.create(new URL('../', import.meta.url), {
   PAYSTACK_SECRET_KEY: Env.schema.string.optional(),
 
   BRIDGECARD_API_KEY: Env.schema.string.optional(),
+  BRIDGECARD_SECRET_KEY: Env.schema.string.optional(),
   BRIDGECARD_BASE_URL: Env.schema.string.optional(),
 })

@@ -6,6 +6,8 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-6">
       <h1 class="text-2xl font-bold text-sand-12">Welcome, {{ auth.user.fullName || 'User' }}</h1>
+
+      {{-- KYC Warning --}}
       @if(auth.user.kycStatus === 'pending')
         <div class="mt-4 bg-warning/10 border border-warning text-warning rounded-lg p-4 flex items-center gap-3">
           <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
@@ -18,6 +20,60 @@
           <a href="{{ route('kyc.show') }}" class="ml-auto px-4 py-2 bg-warning text-white rounded-lg text-sm font-medium hover:bg-warning/90">
             Verify Now
           </a>
+        </div>
+      @endif
+
+      {{-- Low Funds Warning --}}
+      @if(isLowFunds)
+        <div class="mt-4 bg-error/10 border border-error text-error rounded-lg p-4 flex items-start gap-3">
+          <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+          </svg>
+          <div class="flex-1">
+            <p class="font-medium">Low Wallet Balance</p>
+            <p class="text-sm opacity-80">
+              You have ₦{{ totalUpcomingAmount.toLocaleString() }} in subscriptions renewing soon, but only ₦{{ Number(auth.user.walletBalance).toLocaleString() }} in your wallet.
+              @if(fundingNeeded > 0)
+                Fund at least ₦{{ fundingNeeded.toLocaleString() }} to avoid service interruption.
+              @endif
+            </p>
+          </div>
+          <a href="{{ route('wallet.fund') }}" class="px-4 py-2 bg-error text-white rounded-lg text-sm font-medium hover:bg-error/90 whitespace-nowrap">
+            Fund Wallet
+          </a>
+        </div>
+      @endif
+
+      {{-- Upcoming Renewals --}}
+      @if(upcomingRenewals && upcomingRenewals.length > 0)
+        <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
+            </svg>
+            <div class="flex-1">
+              <p class="font-medium text-blue-900">Upcoming Renewals</p>
+              <div class="mt-2 space-y-2">
+                @each(sub in upcomingRenewals)
+                  @set('daysLeft', Math.ceil(sub.nextBillingDate.diff(DateTime.now(), 'days').days))
+                  <div class="flex items-center justify-between text-sm">
+                    <span class="text-blue-800">{{ sub.serviceName }}</span>
+                    <span class="text-blue-600 font-medium">
+                      ₦{{ Number(sub.amount).toLocaleString() }}
+                      •
+                      @if(daysLeft === 0)
+                        Today
+                      @elseif(daysLeft === 1)
+                        Tomorrow
+                      @else
+                        in {{ daysLeft }} days
+                      @endif
+                    </span>
+                  </div>
+                @endeach
+              </div>
+            </div>
+          </div>
         </div>
       @endif
 
@@ -35,6 +91,7 @@
     </div>
 
     <div class="space-y-6">
+      {{-- Balance Card --}}
       <div
         x-data="{ balanceVisible: true }"
         class="bg-gradient-to-br from-primary to-primary/80 rounded-2xl p-6 md:p-8 text-white shadow-lg"
@@ -65,9 +122,84 @@
         </a>
       </div>
 
+      {{-- Active Subscriptions --}}
+      @if(subscriptions && subscriptions.length > 0)
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-semibold text-sand-12">Active Subscriptions</h3>
+            <a href="{{ route('subscriptions.index') }}" class="text-sm text-primary font-medium hover:text-primary/80">
+              View All →
+            </a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            @each(sub in subscriptions)
+              <div class="bg-white border border-sand-7 rounded-xl p-5 hover:shadow-md transition-shadow">
+                <div class="flex items-start gap-4">
+                  <div class="w-12 h-12 rounded-xl flex items-center justify-center {{ sub.serviceId === 'youtube-music' ? 'bg-gradient-to-br from-red-100 to-orange-100' : 'bg-red-100' }}">
+                    @if(sub.serviceId === 'youtube-music')
+                      <svg class="w-6 h-6 text-red-600" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 7.5 12 7.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zm0-5.5c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"/>
+                      </svg>
+                    @else
+                      <svg class="w-6 h-6 text-red-600" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+                      </svg>
+                    @endif
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                      <h4 class="font-semibold text-sand-12 truncate">{{ sub.serviceName }}</h4>
+                      @if(sub.status === 'ready')
+                        <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-warning/20 text-warning">Action Required</span>
+                      @else
+                        <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-success/20 text-success">Active</span>
+                      @endif
+                    </div>
+                    <p class="text-sm text-sand-11">₦{{ Number(sub.amount).toLocaleString() }}/month</p>
+                    @if(sub.nextBillingDate)
+                      @set('daysLeft', Math.ceil(sub.nextBillingDate.diff(DateTime.now(), 'days').days))
+                      <p class="text-xs text-sand-10 mt-1">
+                        Renews {{ sub.nextBillingDate.toFormat('MMM d') }}
+                        @if(daysLeft <= 3 && daysLeft >= 0)
+                          <span class="text-warning font-medium">({{ daysLeft === 0 ? 'Today' : daysLeft === 1 ? 'Tomorrow' : 'in ' + daysLeft + ' days' }})</span>
+                        @endif
+                      </p>
+                    @endif
+                  </div>
+                  <a href="{{ route('subscriptions.details', { id: sub.id }) }}" class="p-2 hover:bg-sand-3 rounded-lg transition-colors">
+                    <svg class="w-5 h-5 text-sand-11" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            @endeach
+          </div>
+        </div>
+      @else
+        {{-- No Subscriptions CTA --}}
+        <div class="bg-gradient-to-br from-red-50 to-orange-50 border border-red-200 rounded-xl p-6">
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+              <svg class="w-8 h-8 text-red-600" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+              </svg>
+            </div>
+            <div class="flex-1">
+              <h3 class="font-semibold text-sand-12 mb-1">Get YouTube Premium</h3>
+              <p class="text-sm text-sand-11">Pay for YouTube Premium & Music with your Naira card. No more payment failures!</p>
+            </div>
+            <a href="{{ route('subscriptions.index') }}" class="px-5 py-2.5 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors whitespace-nowrap">
+              Browse Services
+            </a>
+          </div>
+        </div>
+      @endif
+
+      {{-- Active Cards --}}
       <div>
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-xl font-semibold text-sand-12">Active Cards</h3>
+          <h3 class="text-xl font-semibold text-sand-12">Virtual Cards</h3>
           @if(auth.user.kycStatus === 'verified')
             <a
               href="{{ route('cards.create.show') }}"

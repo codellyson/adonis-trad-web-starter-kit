@@ -10,6 +10,7 @@
 
       <div class="flex items-center gap-4">
         <a href="{{ route('dashboard') }}" class="text-sm text-sand-11 hover:text-sand-12">Dashboard</a>
+        <a href="{{ route('subscriptions.index') }}" class="text-sm text-sand-11 hover:text-sand-12">Services</a>
         <a href="{{ route('transactions') }}" class="text-sm text-sand-11 hover:text-sand-12">Transactions</a>
         <form method="POST" action="{{ route('auth.logout') }}">
           {{ csrfField() }}
