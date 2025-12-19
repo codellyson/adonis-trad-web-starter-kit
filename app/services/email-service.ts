@@ -26,6 +26,18 @@ interface BusinessNotificationData {
   amount: number
 }
 
+interface BookingReminderData {
+  customerName: string
+  customerEmail: string
+  businessName: string
+  serviceName: string
+  date: string
+  time: string
+  staffName?: string
+  reminderType: '24h' | '1h'
+  manageUrl: string
+}
+
 class EmailService {
   private resend: Resend | null = null
   private fromEmail: string
@@ -73,6 +85,32 @@ class EmailService {
         to: data.businessEmail,
         subject: `New Booking - ${data.customerName}`,
         html: this.getBusinessNotificationHtml(data),
+      })
+      return { success: true, data: result }
+    } catch (error) {
+      console.error('Email send error:', error)
+      return { success: false, error }
+    }
+  }
+
+  async sendBookingReminder(data: BookingReminderData) {
+    if (!this.resend) {
+      console.log('[Email Mock] Booking reminder to:', data.customerEmail)
+      console.log('[Email Mock] Data:', JSON.stringify(data, null, 2))
+      return { success: true, mock: true }
+    }
+
+    const subject =
+      data.reminderType === '24h'
+        ? `Reminder: Your appointment tomorrow at ${data.businessName}`
+        : `Reminder: Your appointment in 1 hour at ${data.businessName}`
+
+    try {
+      const result = await this.resend.emails.send({
+        from: `BookMe <${this.fromEmail}>`,
+        to: data.customerEmail,
+        subject,
+        html: this.getBookingReminderHtml(data),
       })
       return { success: true, data: result }
     } catch (error) {
@@ -136,6 +174,73 @@ class EmailService {
 
         <p style="color: #63635e; font-size: 14px; line-height: 1.6;">
           Please arrive 5 minutes before your scheduled time. If you need to cancel or reschedule, please contact the business directly.
+        </p>
+      </div>
+      <div style="background: #f9f9f8; padding: 20px; text-align: center; border-top: 1px solid #e9e8e6;">
+        <p style="margin: 0; color: #82827c; font-size: 13px;">
+          Powered by <a href="https://bookme.ng" style="color: #5A45FF; text-decoration: none;">BookMe</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`
+  }
+
+  private getBookingReminderHtml(data: BookingReminderData): string {
+    const headerText =
+      data.reminderType === '24h' ? 'Your appointment is tomorrow!' : 'Your appointment is in 1 hour!'
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f9f9f8;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+    <div style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <div style="background: #f59e0b; padding: 30px; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">⏰ ${headerText}</h1>
+      </div>
+      <div style="padding: 30px;">
+        <p style="color: #21201c; font-size: 16px; margin-bottom: 20px;">
+          Hi ${data.customerName},
+        </p>
+        <p style="color: #63635e; font-size: 15px; line-height: 1.6;">
+          This is a friendly reminder about your upcoming appointment at <strong>${data.businessName}</strong>.
+        </p>
+
+        <div style="background: #f9f9f8; border-radius: 12px; padding: 20px; margin: 24px 0;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 8px 0; color: #63635e; font-size: 14px;">Service</td>
+              <td style="padding: 8px 0; color: #21201c; font-size: 14px; text-align: right; font-weight: 500;">${data.serviceName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #63635e; font-size: 14px;">Date</td>
+              <td style="padding: 8px 0; color: #21201c; font-size: 14px; text-align: right; font-weight: 500;">${data.date}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #63635e; font-size: 14px;">Time</td>
+              <td style="padding: 8px 0; color: #21201c; font-size: 14px; text-align: right; font-weight: 500;">${data.time}</td>
+            </tr>
+            ${
+              data.staffName
+                ? `
+            <tr>
+              <td style="padding: 8px 0; color: #63635e; font-size: 14px;">With</td>
+              <td style="padding: 8px 0; color: #21201c; font-size: 14px; text-align: right; font-weight: 500;">${data.staffName}</td>
+            </tr>
+            `
+                : ''
+            }
+          </table>
+        </div>
+
+        <p style="color: #63635e; font-size: 14px; line-height: 1.6;">
+          Please arrive 5 minutes before your scheduled time. If you need to cancel or reschedule, please do so as soon as possible.
         </p>
       </div>
       <div style="background: #f9f9f8; padding: 20px; text-align: center; border-top: 1px solid #e9e8e6;">

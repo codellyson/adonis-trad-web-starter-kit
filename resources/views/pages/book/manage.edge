@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Booking - {{ booking.business.name }}</title>
+  <link rel="preconnect" href="https://fonts.bunny.net" />
+  <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --sand-1: #fdfdfc;
+      --sand-2: #f9f9f8;
+      --sand-3: #f1f0ef;
+      --sand-4: #e9e8e6;
+      --sand-5: #e2e1de;
+      --sand-6: #dad9d6;
+      --sand-7: #cfceca;
+      --sand-8: #bcbbb5;
+      --sand-9: #8d8d86;
+      --sand-10: #82827c;
+      --sand-11: #63635e;
+      --sand-12: #21201c;
+      --success: #10b981;
+      --error: #ef4444;
+      --warning: #f59e0b;
+    }
+  </style>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Instrument Sans", "sans-serif"]
+          },
+          colors: {
+            primary: {
+              DEFAULT: "#5A45FF",
+              lighter: "#a599ff"
+            },
+            sand: {
+              1: "var(--sand-1)",
+              2: "var(--sand-2)",
+              3: "var(--sand-3)",
+              4: "var(--sand-4)",
+              5: "var(--sand-5)",
+              6: "var(--sand-6)",
+              7: "var(--sand-7)",
+              8: "var(--sand-8)",
+              9: "var(--sand-9)",
+              10: "var(--sand-10)",
+              11: "var(--sand-11)",
+              12: "var(--sand-12)"
+            },
+            success: "var(--success)",
+            error: "var(--error)",
+            warning: "var(--warning)"
+          }
+        }
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-sand-2 text-sand-12 min-h-screen font-sans">
+  <div class="max-w-2xl mx-auto px-4 py-8">
+    {{-- Business Header --}}
+    <div class="text-center mb-8">
+      @if(booking.business.logo)
+        <img src="{{ booking.business.logo }}" alt="{{ booking.business.name }}" class="w-16 h-16 rounded-full mx-auto mb-4 object-cover" />
+      @else
+        <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+          <span class="text-2xl font-bold text-primary">{{ booking.business.name.charAt(0) }}</span>
+        </div>
+      @endif
+      <h1 class="text-xl font-bold text-sand-12">{{ booking.business.name }}</h1>
+    </div>
+
+    @if(flashMessages.has('success'))
+      <div class="mb-6 bg-success/10 border border-success text-success rounded-lg p-4 text-sm">
+        {{ flashMessages.get('success') }}
+      </div>
+    @endif
+
+    @if(flashMessages.has('error'))
+      <div class="mb-6 bg-error/10 border border-error text-error rounded-lg p-4 text-sm">
+        {{ flashMessages.get('error') }}
+      </div>
+    @endif
+
+    <div class="bg-white border border-sand-7 rounded-xl overflow-hidden">
+      <div class="p-6 border-b border-sand-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-sand-12">Booking Details</h2>
+          <span class="px-3 py-1 rounded-full text-sm font-medium {{ booking.status === 'confirmed' ? 'bg-success/10 text-success' : booking.status === 'cancelled' ? 'bg-error/10 text-error' : 'bg-sand-4 text-sand-11' }}">
+            {{ booking.status.charAt(0).toUpperCase() + booking.status.slice(1).replace('_', ' ') }}
+          </span>
+        </div>
+
+        <div class="space-y-3">
+          <div>
+            <p class="text-sm text-sand-11">Service</p>
+            <p class="font-medium text-sand-12">{{ booking.service.name }}</p>
+          </div>
+
+          <div>
+            <p class="text-sm text-sand-11">Date & Time</p>
+            <p class="font-medium text-sand-12">
+              {{ booking.date.toFormat('EEEE, MMMM d, yyyy') }} at {{ booking.startTime }} - {{ booking.endTime }}
+            </p>
+          </div>
+
+          @if(booking.staff)
+            <div>
+              <p class="text-sm text-sand-11">Staff</p>
+              <p class="font-medium text-sand-12">{{ booking.staff.fullName }}</p>
+            </div>
+          @endif
+
+          <div>
+            <p class="text-sm text-sand-11">Amount Paid</p>
+            <p class="font-medium text-primary">₦{{ Number(booking.amount).toLocaleString() }}</p>
+          </div>
+
+          <div>
+            <p class="text-sm text-sand-11">Reference</p>
+            <p class="font-mono text-sm text-sand-12">{{ booking.paymentReference ? booking.paymentReference.substring(0, 8).toUpperCase() : 'N/A' }}</p>
+          </div>
+        </div>
+      </div>
+
+      @if(booking.status === 'confirmed' && !booking.isPast)
+        <div class="p-6 bg-sand-2 space-y-4">
+          @if(booking.business.cancellationPolicy)
+            <div class="text-sm text-sand-11">
+              <p class="font-medium text-sand-12 mb-1">Cancellation Policy</p>
+              <p>{{ booking.business.cancellationPolicy }}</p>
+              @if(booking.business.cancellationHours > 0)
+                <p class="mt-1">Cancellations must be made at least {{ booking.business.cancellationHours }} hours before the appointment.</p>
+              @endif
+            </div>
+          @endif
+
+          <div class="flex flex-col sm:flex-row gap-3">
+            @if(canReschedule)
+              <a
+                href="{{ route('book.reschedule.show', { slug: booking.business.slug, bookingId: booking.id }) }}"
+                class="flex-1 px-4 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 text-center"
+              >
+                Reschedule
+              </a>
+            @endif
+
+            @if(canCancel)
+              <form
+                method="POST"
+                action="{{ route('book.cancel', { slug: booking.business.slug, bookingId: booking.id }) }}"
+                onsubmit="return confirm('Are you sure you want to cancel this booking?')"
+                class="flex-1"
+              >
+                {{ csrfField() }}
+                <button
+                  type="submit"
+                  class="w-full px-4 py-2.5 border border-error text-error font-medium rounded-lg hover:bg-error/5"
+                >
+                  Cancel Booking
+                </button>
+              </form>
+            @endif
+
+            @if(!canCancel && !canReschedule)
+              <p class="text-sm text-sand-11">
+                This booking can no longer be modified. Please contact {{ booking.business.name }} directly if you need to make changes.
+              </p>
+            @endif
+          </div>
+        </div>
+      @endif
+
+      @if(booking.status === 'cancelled')
+        <div class="p-6 bg-error/5">
+          <p class="text-sm text-error">
+            This booking was cancelled
+            @if(booking.cancelledAt)
+              on {{ booking.cancelledAt.toFormat('MMMM d, yyyy') }}
+            @endif
+          </p>
+        </div>
+      @endif
+    </div>
+
+    {{-- Footer --}}
+    <div class="mt-8 text-center text-sm text-sand-10">
+      <a href="/book/{{ booking.business.slug }}" class="text-primary hover:underline">Book another appointment</a>
+      <span class="mx-2">•</span>
+      Powered by <a href="/" class="text-primary hover:underline">BookMe</a>
+    </div>
+  </div>
+</body>
+</html>
+

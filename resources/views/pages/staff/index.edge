@@ -1,0 +1,98 @@
+@layout('layouts/app')
+
+@set('title', 'Staff - BookMe')
+
+@section('content')
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8 flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-sand-12">Staff</h1>
+        <p class="text-sand-11 mt-1">Manage your team members</p>
+      </div>
+      <a href="{{ route('staff.create') }}" class="px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-primary/90">
+        + Add Staff
+      </a>
+    </div>
+
+    @if(staff.length > 0)
+      <div class="space-y-4">
+        @each(member in staff)
+          <div class="bg-white border border-sand-7 rounded-xl p-5 flex items-center justify-between {{ !member.isActive ? 'opacity-60' : '' }}">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-lg">
+                {{ member.fullName.charAt(0).toUpperCase() }}
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2">
+                  <h3 class="font-medium text-sand-12">{{ member.fullName }}</h3>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ member.role === 'owner' ? 'bg-primary/10 text-primary' : member.role === 'admin' ? 'bg-warning/10 text-warning' : 'bg-sand-4 text-sand-11' }}">
+                    {{ member.role.charAt(0).toUpperCase() + member.role.slice(1) }}
+                  </span>
+                  @if(!member.isActive)
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-error/10 text-error">
+                      Inactive
+                    </span>
+                  @endif
+                </div>
+                <p class="text-sm text-sand-11 mt-0.5">{{ member.email }}</p>
+                @if(member.services && member.services.length > 0)
+                  <div class="flex flex-wrap gap-1 mt-2">
+                    @each(service in member.services)
+                      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-sand-3 text-sand-11">
+                        {{ service.name }}
+                      </span>
+                    @endeach
+                  </div>
+                @endif
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <a href="{{ route('staff.edit', { id: member.id }) }}" class="p-2 hover:bg-sand-3 rounded-lg" title="Edit">
+                <svg class="w-5 h-5 text-sand-11" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+              </a>
+              @if(member.role !== 'owner')
+                <form method="POST" action="{{ route('staff.toggle', { id: member.id }) }}">
+                  {{ csrfField() }}
+                  <button type="submit" class="p-2 hover:bg-sand-3 rounded-lg" title="{{ member.isActive ? 'Deactivate' : 'Activate' }}">
+                    @if(member.isActive)
+                      <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                      </svg>
+                    @else
+                      <svg class="w-5 h-5 text-sand-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                      </svg>
+                    @endif
+                  </button>
+                </form>
+                <form method="POST" action="{{ route('staff.destroy', { id: member.id }) }}" onsubmit="return confirm('Remove this staff member?')">
+                  {{ csrfField() }}
+                  <button type="submit" class="p-2 hover:bg-error/10 rounded-lg" title="Remove">
+                    <svg class="w-5 h-5 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                  </button>
+                </form>
+              @endif
+            </div>
+          </div>
+        @endeach
+      </div>
+    @else
+      <div class="bg-white border border-sand-7 rounded-xl p-12 text-center">
+        <svg class="w-16 h-16 mx-auto mb-4 text-sand-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+        <h3 class="text-lg font-medium text-sand-12 mb-1">No staff members yet</h3>
+        <p class="text-sand-11 mb-6">Add team members to assign services and manage schedules</p>
+        <a href="{{ route('staff.create') }}" class="inline-flex px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-primary/90">
+          + Add Your First Staff Member
+        </a>
+      </div>
+    @endif
+  </div>
+@endsection
+

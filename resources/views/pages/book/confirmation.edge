@@ -137,8 +137,14 @@
     {{-- Actions --}}
     <div class="space-y-3">
       <a
-        href="/book/{{ booking.business.slug }}"
+        href="{{ route('book.manage', { slug: booking.business.slug, bookingId: booking.id }) }}"
         class="block w-full py-3 text-center bg-primary text-white font-medium rounded-lg hover:bg-primary/90"
+      >
+        Manage Booking
+      </a>
+      <a
+        href="/book/{{ booking.business.slug }}"
+        class="block w-full py-3 text-center border border-sand-7 text-sand-12 font-medium rounded-lg hover:bg-sand-2"
       >
         Book Another Appointment
       </a>

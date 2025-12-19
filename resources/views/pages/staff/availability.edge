@@ -1,0 +1,76 @@
+@layout('layouts/app')
+
+@set('title', 'Staff Availability - BookMe')
+
+@section('content')
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+      <a href="{{ route('staff.edit', { id: staffMember.id }) }}" class="inline-flex items-center text-sm text-sand-11 hover:text-sand-12 mb-4">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        Back to {{ staffMember.fullName }}
+      </a>
+      <h1 class="text-2xl font-bold text-sand-12">{{ staffMember.fullName }}'s Availability</h1>
+      <p class="text-sand-11 mt-1">Set when this staff member is available for bookings</p>
+    </div>
+
+    <form method="POST" action="{{ route('staff.availability.save', { id: staffMember.id }) }}" class="bg-white border border-sand-7 rounded-xl p-6">
+      {{ csrfField() }}
+
+      <div class="space-y-4">
+        @each(day in daysOfWeek)
+          @set('avail', availabilityMap.get(day.value))
+          <div class="flex items-center gap-4 p-4 border border-sand-6 rounded-lg" x-data="{ enabled: {{ avail ? 'true' : 'false' }} }">
+            <input type="hidden" name="availabilities[{{ day.value }}][dayOfWeek]" value="{{ day.value }}" />
+
+            <label class="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                name="availabilities[{{ day.value }}][isActive]"
+                value="true"
+                {{ avail ? 'checked' : '' }}
+                @change="enabled = $el.checked"
+                class="w-5 h-5 text-primary border-sand-7 rounded focus:ring-primary"
+              />
+            </label>
+
+            <div class="w-24 font-medium text-sand-12">{{ day.label }}</div>
+
+            <div class="flex-1 flex items-center gap-3" x-show="enabled" x-cloak>
+              <div class="flex items-center gap-2">
+                <input
+                  type="time"
+                  name="availabilities[{{ day.value }}][startTime]"
+                  value="{{ avail ? avail.startTime : '09:00' }}"
+                  class="px-3 py-2 border border-sand-7 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                />
+                <span class="text-sand-11">to</span>
+                <input
+                  type="time"
+                  name="availabilities[{{ day.value }}][endTime]"
+                  value="{{ avail ? avail.endTime : '17:00' }}"
+                  class="px-3 py-2 border border-sand-7 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                />
+              </div>
+            </div>
+
+            <div class="flex-1 text-sand-9 text-sm" x-show="!enabled" x-cloak>
+              Unavailable
+            </div>
+          </div>
+        @endeach
+      </div>
+
+      <div class="flex items-center gap-3 pt-6 mt-6 border-t border-sand-6">
+        <button type="submit" class="px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary/90">
+          Save Availability
+        </button>
+        <a href="{{ route('staff.edit', { id: staffMember.id }) }}" class="px-6 py-2.5 border border-sand-7 text-sand-12 font-medium rounded-lg hover:bg-sand-2">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+@endsection
+

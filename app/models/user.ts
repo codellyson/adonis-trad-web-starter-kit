@@ -1,10 +1,12 @@
 import { DateTime } from 'luxon'
 import hash from '@adonisjs/core/services/hash'
 import { compose } from '@adonisjs/core/helpers'
-import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
+import { BaseModel, belongsTo, column, hasMany, manyToMany } from '@adonisjs/lucid/orm'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
-import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Business from '#models/business'
+import Service from '#models/service'
+import Availability from '#models/availability'
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
   uids: ['email'],
@@ -47,4 +49,26 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   @belongsTo(() => Business)
   declare business: BelongsTo<typeof Business>
+
+  @manyToMany(() => Service, {
+    pivotTable: 'staff_services',
+    pivotForeignKey: 'user_id',
+    pivotRelatedForeignKey: 'service_id',
+  })
+  declare services: ManyToMany<typeof Service>
+
+  @hasMany(() => Availability)
+  declare availabilities: HasMany<typeof Availability>
+
+  get isOwner() {
+    return this.role === 'owner'
+  }
+
+  get isAdmin() {
+    return this.role === 'admin'
+  }
+
+  get isStaff() {
+    return this.role === 'staff'
+  }
 }

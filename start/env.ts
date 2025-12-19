@@ -16,6 +16,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   DB_DATABASE: Env.schema.string(),
 
   APP_URL: Env.schema.string.optional(),
+  APP_DOMAIN: Env.schema.string.optional(),
 
   PAYSTACK_SECRET_KEY: Env.schema.string.optional(),
   PAYSTACK_PUBLIC_KEY: Env.schema.string.optional(),

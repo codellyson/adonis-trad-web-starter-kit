@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reschedule Booking - {{ booking.business.name }}</title>
+  <link rel="preconnect" href="https://fonts.bunny.net" />
+  <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --sand-1: #fdfdfc;
+      --sand-2: #f9f9f8;
+      --sand-3: #f1f0ef;
+      --sand-4: #e9e8e6;
+      --sand-5: #e2e1de;
+      --sand-6: #dad9d6;
+      --sand-7: #cfceca;
+      --sand-8: #bcbbb5;
+      --sand-9: #8d8d86;
+      --sand-10: #82827c;
+      --sand-11: #63635e;
+      --sand-12: #21201c;
+      --success: #10b981;
+      --error: #ef4444;
+      --warning: #f59e0b;
+    }
+  </style>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Instrument Sans", "sans-serif"]
+          },
+          colors: {
+            primary: {
+              DEFAULT: "#5A45FF",
+              lighter: "#a599ff"
+            },
+            sand: {
+              1: "var(--sand-1)",
+              2: "var(--sand-2)",
+              3: "var(--sand-3)",
+              4: "var(--sand-4)",
+              5: "var(--sand-5)",
+              6: "var(--sand-6)",
+              7: "var(--sand-7)",
+              8: "var(--sand-8)",
+              9: "var(--sand-9)",
+              10: "var(--sand-10)",
+              11: "var(--sand-11)",
+              12: "var(--sand-12)"
+            },
+            success: "var(--success)",
+            error: "var(--error)",
+            warning: "var(--warning)"
+          }
+        }
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-sand-2 text-sand-12 min-h-screen font-sans">
+  <div x-data="rescheduleApp()" class="max-w-2xl mx-auto px-4 py-8">
+    {{-- Header --}}
+    <div class="mb-8">
+      <a href="{{ route('book.manage', { slug: booking.business.slug, bookingId: booking.id }) }}" class="inline-flex items-center text-sm text-sand-11 hover:text-sand-12 mb-4">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        Back to booking
+      </a>
+      <h1 class="text-2xl font-bold text-sand-12">Reschedule Booking</h1>
+      <p class="text-sand-11 mt-1">Choose a new date and time for your appointment</p>
+    </div>
+
+    @if(flashMessages.has('error'))
+      <div class="mb-6 bg-error/10 border border-error text-error rounded-lg p-4 text-sm">
+        {{ flashMessages.get('error') }}
+      </div>
+    @endif
+
+    {{-- Current Booking --}}
+    <div class="bg-white border border-sand-7 rounded-xl p-4 mb-6">
+      <p class="text-sm text-sand-11 mb-1">Current appointment:</p>
+      <p class="font-medium text-sand-12">{{ booking.service.name }}</p>
+      <p class="text-sm text-sand-11">{{ booking.date.toFormat('EEEE, MMMM d, yyyy') }} at {{ booking.startTime }}</p>
+    </div>
+
+    {{-- Date Picker --}}
+    <div class="bg-white border border-sand-7 rounded-xl p-6 space-y-6">
+      <div>
+        <h3 class="font-medium text-sand-12 mb-3">Select new date</h3>
+        <input
+          type="date"
+          x-model="selectedDate"
+          @change="fetchTimeSlots()"
+          :min="minDate"
+          class="w-full px-4 py-3 border border-sand-7 rounded-lg text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </div>
+
+      {{-- Time Slots --}}
+      <div x-show="selectedDate">
+        <h3 class="font-medium text-sand-12 mb-3">Select new time</h3>
+        <div x-show="loadingSlots" class="text-center py-8 text-sand-11">Loading available times...</div>
+        <div x-show="!loadingSlots && slots.length === 0" class="text-center py-8 text-sand-11">No available times on this date</div>
+        <div x-show="!loadingSlots && slots.length > 0" class="grid grid-cols-3 sm:grid-cols-4 gap-2">
+          <template x-for="slot in slots" :key="slot.time">
+            <button
+              type="button"
+              :disabled="!slot.available"
+              @click="selectTime(slot.time)"
+              :class="{
+                'bg-primary text-white': selectedTime === slot.time,
+                'bg-white hover:border-primary': slot.available && selectedTime !== slot.time,
+                'bg-sand-3 text-sand-9 cursor-not-allowed': !slot.available
+              }"
+              class="px-3 py-2 border border-sand-7 rounded-lg text-sm font-medium transition-colors"
+              x-text="formatTime(slot.time)"
+            ></button>
+          </template>
+        </div>
+      </div>
+
+      <form
+        x-show="selectedDate && selectedTime"
+        method="POST"
+        action="{{ route('book.reschedule', { slug: booking.business.slug, bookingId: booking.id }) }}"
+      >
+        {{ csrfField() }}
+        <input type="hidden" name="date" x-bind:value="selectedDate" />
+        <input type="hidden" name="time" x-bind:value="selectedTime" />
+
+        <div class="bg-sand-2 rounded-lg p-4 mb-4">
+          <p class="text-sm text-sand-11">New appointment:</p>
+          <p class="font-medium text-sand-12" x-text="formatDate(selectedDate) + ' at ' + formatTime(selectedTime)"></p>
+        </div>
+
+        <button
+          type="submit"
+          class="w-full py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90"
+        >
+          Confirm Reschedule
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function rescheduleApp() {
+      return {
+        selectedDate: '',
+        selectedTime: '',
+        slots: [],
+        loadingSlots: false,
+        minDate: new Date().toISOString().split('T')[0],
+        businessSlug: '{{ booking.business.slug }}',
+        serviceId: {{ booking.serviceId }},
+        staffId: {{ booking.staffId || 'null' }},
+
+        async fetchTimeSlots() {
+          if (!this.selectedDate) return;
+          this.loadingSlots = true;
+          this.selectedTime = '';
+          try {
+            let url = `/book/${this.businessSlug}/service/${this.serviceId}/slots?date=${this.selectedDate}`;
+            if (this.staffId) {
+              url += `&staffId=${this.staffId}`;
+            }
+            const res = await fetch(url);
+            const data = await res.json();
+            this.slots = data.slots || [];
+          } catch (e) {
+            console.error(e);
+            this.slots = [];
+          }
+          this.loadingSlots = false;
+        },
+
+        selectTime(time) {
+          this.selectedTime = time;
+        },
+
+        formatTime(time) {
+          if (!time) return '';
+          const [h, m] = time.split(':');
+          const hour = parseInt(h);
+          const suffix = hour >= 12 ? 'PM' : 'AM';
+          const displayHour = hour % 12 || 12;
+          return `${displayHour}:${m} ${suffix}`;
+        },
+
+        formatDate(dateStr) {
+          if (!dateStr) return '';
+          const date = new Date(dateStr);
+          return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        }
+      }
+    }
+  </script>
+</body>
+</html>
+

@@ -1,11 +1,12 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
-import type { HasMany } from '@adonisjs/lucid/types/relations'
+import { BaseModel, column, hasMany, hasOne } from '@adonisjs/lucid/orm'
+import type { HasMany, HasOne } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
 import Service from '#models/service'
 import Availability from '#models/availability'
 import TimeOff from '#models/time-off'
 import Booking from '#models/booking'
+import BusinessTheme from '#models/business-theme'
 
 export default class Business extends BaseModel {
   @column({ isPrimary: true })
@@ -85,6 +86,9 @@ export default class Business extends BaseModel {
 
   @hasMany(() => Booking)
   declare bookings: HasMany<typeof Booking>
+
+  @hasOne(() => BusinessTheme)
+  declare theme: HasOne<typeof BusinessTheme>
 
   get bookingUrl() {
     return `https://${this.slug}.bookme.ng`

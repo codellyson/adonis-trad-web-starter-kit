@@ -1,0 +1,122 @@
+@layout('layouts/app')
+
+@set('title', 'Add Staff - BookMe')
+
+@section('content')
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+      <a href="{{ route('staff.index') }}" class="inline-flex items-center text-sm text-sand-11 hover:text-sand-12 mb-4">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        Back to Staff
+      </a>
+      <h1 class="text-2xl font-bold text-sand-12">Add Staff Member</h1>
+      <p class="text-sand-11 mt-1">Add a new team member to your business</p>
+    </div>
+
+    <form method="POST" action="{{ route('staff.store') }}" class="bg-white border border-sand-7 rounded-xl p-6 space-y-6">
+      {{ csrfField() }}
+
+      <div>
+        <label for="fullName" class="block text-sm font-medium text-sand-12 mb-1">Full Name *</label>
+        <input
+          type="text"
+          id="fullName"
+          name="fullName"
+          value="{{ old('fullName') || '' }}"
+          required
+          class="w-full px-4 py-2.5 border border-sand-7 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          placeholder="John Doe"
+        />
+      </div>
+
+      <div>
+        <label for="email" class="block text-sm font-medium text-sand-12 mb-1">Email *</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          value="{{ old('email') || '' }}"
+          required
+          class="w-full px-4 py-2.5 border border-sand-7 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          placeholder="john@example.com"
+        />
+        <p class="text-xs text-sand-11 mt-1">They'll use this to log in</p>
+      </div>
+
+      <div>
+        <label for="phone" class="block text-sm font-medium text-sand-12 mb-1">Phone</label>
+        <input
+          type="tel"
+          id="phone"
+          name="phone"
+          value="{{ old('phone') || '' }}"
+          class="w-full px-4 py-2.5 border border-sand-7 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          placeholder="+234 800 000 0000"
+        />
+      </div>
+
+      <div>
+        <label for="password" class="block text-sm font-medium text-sand-12 mb-1">Password *</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          required
+          minlength="8"
+          class="w-full px-4 py-2.5 border border-sand-7 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          placeholder="••••••••"
+        />
+        <p class="text-xs text-sand-11 mt-1">Minimum 8 characters</p>
+      </div>
+
+      <div>
+        <label for="role" class="block text-sm font-medium text-sand-12 mb-1">Role *</label>
+        <select
+          id="role"
+          name="role"
+          required
+          class="w-full px-4 py-2.5 border border-sand-7 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
+        >
+          <option value="staff" {{ old('role') === 'staff' ? 'selected' : '' }}>Staff</option>
+          <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin</option>
+        </select>
+        <p class="text-xs text-sand-11 mt-1">Admins can manage bookings and services. Staff can only view their schedule.</p>
+      </div>
+
+      @if(services.length > 0)
+        <div>
+          <label class="block text-sm font-medium text-sand-12 mb-2">Assigned Services</label>
+          <p class="text-xs text-sand-11 mb-3">Select which services this staff member can perform</p>
+          <div class="space-y-2 max-h-48 overflow-y-auto border border-sand-6 rounded-lg p-3">
+            @each(service in services)
+              <label class="flex items-center gap-3 p-2 rounded hover:bg-sand-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="serviceIds[]"
+                  value="{{ service.id }}"
+                  class="w-4 h-4 text-primary border-sand-7 rounded focus:ring-primary"
+                />
+                <div>
+                  <span class="text-sm font-medium text-sand-12">{{ service.name }}</span>
+                  <span class="text-xs text-sand-11 ml-2">{{ service.formattedDuration }} • ₦{{ Number(service.price).toLocaleString() }}</span>
+                </div>
+              </label>
+            @endeach
+          </div>
+        </div>
+      @endif
+
+      <div class="flex items-center gap-3 pt-4">
+        <button type="submit" class="px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary/90">
+          Add Staff Member
+        </button>
+        <a href="{{ route('staff.index') }}" class="px-6 py-2.5 border border-sand-7 text-sand-12 font-medium rounded-lg hover:bg-sand-2">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+@endsection
+

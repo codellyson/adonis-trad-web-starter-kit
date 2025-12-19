@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ business.name }} | Online Booking</title>
+  <meta name="description" content="{{ theme?.tagline || business.description || `Book an appointment with ${business.name}` }}" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet" />
+  @if(theme)
+    <link href="{{ theme.getGoogleFontsUrl() }}" rel="stylesheet" />
+  @endif
+  <style>
+    :root {
+      {{ theme?.getCssVariables() || `
+        --theme-primary: #0f766e;
+        --theme-secondary: #f0fdfa;
+        --theme-accent: #0d9488;
+        --theme-text: #134e4a;
+        --theme-background: #ffffff;
+        --theme-font-heading: 'Source Sans Pro', sans-serif;
+        --theme-font-body: 'Source Sans Pro', sans-serif;
+      ` }}
+    }
+    body {
+      font-family: var(--theme-font-body);
+      color: var(--theme-text);
+      background-color: var(--theme-background);
+    }
+    h1, h2, h3 {
+      font-family: var(--theme-font-heading);
+    }
+    .btn-primary {
+      background-color: var(--theme-primary);
+      @if(theme?.buttonStyle === 'pill')
+        border-radius: 9999px;
+      @elseif(theme?.buttonStyle === 'square')
+        border-radius: 0.25rem;
+      @else
+        border-radius: 0.5rem;
+      @endif
+    }
+    .btn-primary:hover {
+      filter: brightness(1.1);
+    }
+    {{ theme?.customCss || '' }}
+  </style>
+</head>
+<body class="min-h-screen flex flex-col" x-data="bookingApp()">
+  <header class="bg-white border-b" style="border-color: var(--theme-secondary)">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-4">
+          @if(business.logo)
+            <img src="{{ business.logo }}" alt="{{ business.name }}" class="w-10 h-10 rounded object-cover" />
+          @endif
+          <div>
+            <h1 class="font-bold text-lg" style="color: var(--theme-primary)">{{ business.name }}</h1>
+            <p class="text-xs opacity-60">{{ business.category }}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          @if(business.phone)
+            <a href="tel:{{ business.phone }}" class="hidden sm:flex items-center gap-2 text-sm opacity-70 hover:opacity-100">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+              {{ business.phone }}
+            </a>
+          @endif
+          @if(theme?.socialLinks?.whatsapp)
+            <a href="{{ theme.socialLinks.whatsapp }}" target="_blank" class="px-4 py-2 text-sm font-medium rounded" style="background: var(--theme-secondary); color: var(--theme-primary)">
+              Contact Us
+            </a>
+          @endif
+        </div>
+      </div>
+    </div>
+  </header>
+
+  @if(theme?.heroStyle === 'image' && theme?.heroImage)
+    <div class="h-48 bg-cover bg-center" style="background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('{{ theme.heroImage }}')">
+      <div class="h-full flex items-center justify-center">
+        @if(theme?.tagline)
+          <p class="text-white text-xl font-medium text-center px-4">{{ theme.tagline }}</p>
+        @endif
+      </div>
+    </div>
+  @else
+    <div class="py-8 text-center" style="background: var(--theme-secondary)">
+      @if(theme?.tagline)
+        <p class="text-lg opacity-80">{{ theme.tagline }}</p>
+      @endif
+    </div>
+  @endif
+
+  <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+    <div class="grid lg:grid-cols-3 gap-8">
+      <div class="lg:col-span-2 space-y-8">
+        <section>
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold">Our Services</h2>
+            <span class="text-sm opacity-60">{{ services.length }} services available</span>
+          </div>
+          
+          <div class="bg-white border rounded-lg overflow-hidden" style="border-color: var(--theme-secondary)">
+            <table class="w-full">
+              <thead style="background: var(--theme-secondary)">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider opacity-70">Service</th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider opacity-70">Duration</th>
+                  <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider opacity-70">Price</th>
+                  <th class="px-6 py-3"></th>
+                </tr>
+              </thead>
+              <tbody class="divide-y" style="border-color: var(--theme-secondary)">
+                @each(service in services)
+                  <tr 
+                    class="hover:bg-gray-50 cursor-pointer transition-colors"
+                    :class="{ 'bg-teal-50': selectedService?.id === {{ service.id }} }"
+                    @click="selectService({{ service.id }}, '{{ service.name }}', {{ service.price }}, {{ service.durationMinutes || 30 }})"
+                  >
+                    <td class="px-6 py-4">
+                      <div class="font-medium">{{ service.name }}</div>
+                      @if(service.description)
+                        <div class="text-sm opacity-60 mt-0.5">{{ service.description }}</div>
+                      @endif
+                    </td>
+                    <td class="px-6 py-4 text-sm opacity-70">{{ service.durationMinutes || 30 }} min</td>
+                    <td class="px-6 py-4 text-right font-semibold" style="color: var(--theme-primary)">₦{{ Number(service.price).toLocaleString() }}</td>
+                    <td class="px-6 py-4">
+                      <div 
+                        class="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors"
+                        :class="selectedService?.id === {{ service.id }} ? 'border-teal-600 bg-teal-600' : 'border-gray-300'"
+                      >
+                        <svg x-show="selectedService?.id === {{ service.id }}" class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                      </div>
+                    </td>
+                  </tr>
+                @end
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        @if(theme?.showAbout && theme?.aboutText)
+          <section class="bg-white border rounded-lg p-6" style="border-color: var(--theme-secondary)">
+            <h2 class="text-lg font-bold mb-4">About {{ business.name }}</h2>
+            <p class="opacity-70 leading-relaxed whitespace-pre-line">{{ theme.aboutText }}</p>
+          </section>
+        @endif
+
+        @if(theme?.showGallery && theme?.galleryImages && theme.galleryImages.length > 0)
+          <section>
+            <h2 class="text-lg font-bold mb-4">Gallery</h2>
+            <div class="grid grid-cols-4 gap-2">
+              @each(image in theme.galleryImages)
+                <div class="aspect-square rounded overflow-hidden">
+                  <img src="{{ image }}" alt="" class="w-full h-full object-cover hover:opacity-90 transition-opacity" />
+                </div>
+              @end
+            </div>
+          </section>
+        @endif
+      </div>
+
+      <div class="lg:col-span-1">
+        <div class="bg-white border rounded-lg p-6 sticky top-4" style="border-color: var(--theme-secondary)">
+          <h3 class="font-bold text-lg mb-1">Schedule Appointment</h3>
+          <p class="text-sm opacity-60 mb-6">Complete the form below to book</p>
+          
+          <div x-show="!selectedService" class="text-center py-6 border-2 border-dashed rounded-lg" style="border-color: var(--theme-secondary)">
+            <svg class="w-10 h-10 mx-auto mb-2 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            <p class="text-sm opacity-50">Select a service from the list</p>
+          </div>
+
+          <form x-show="selectedService" x-cloak class="space-y-4">
+            <div class="p-4 rounded-lg" style="background: var(--theme-secondary)">
+              <p class="font-semibold" x-text="selectedService?.name"></p>
+              <p class="text-sm opacity-70"><span x-text="selectedService?.duration"></span> minutes | ₦<span x-text="selectedService?.price?.toLocaleString()"></span></p>
+            </div>
+
+            @if(staff.length > 1)
+              <div>
+                <label class="block text-sm font-medium mb-1">Preferred Staff</label>
+                <select x-model="selectedStaffId" @change="fetchTimeSlots()" class="w-full px-3 py-2 border rounded" style="border-color: var(--theme-secondary)">
+                  <option value="">No preference</option>
+                  @each(member in staff)
+                    <option value="{{ member.id }}">{{ member.fullName }}</option>
+                  @end
+                </select>
+              </div>
+            @endif
+
+            <div>
+              <label class="block text-sm font-medium mb-1">Date *</label>
+              <input type="date" x-model="selectedDate" @change="fetchTimeSlots()" :min="minDate" class="w-full px-3 py-2 border rounded" style="border-color: var(--theme-secondary)" required />
+            </div>
+
+            <div x-show="selectedDate && !loadingSlots">
+              <label class="block text-sm font-medium mb-1">Time *</label>
+              <div x-show="timeSlots.length === 0" class="text-sm opacity-50 py-2">
+                No available times for this date
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                <template x-for="slot in timeSlots" :key="slot.time">
+                  <button
+                    type="button"
+                    @click="slot.available && (selectedTime = slot.time)"
+                    :disabled="!slot.available"
+                    :style="selectedTime === slot.time ? 'background-color: var(--theme-primary); color: white; border-color: var(--theme-primary)' : 'border-color: var(--theme-secondary)'"
+                    :class="{ 'opacity-40 cursor-not-allowed': !slot.available }"
+                    class="px-2 py-2 text-sm border rounded transition-colors"
+                    x-text="formatTime(slot.time)"
+                  ></button>
+                </template>
+              </div>
+            </div>
+
+            <div x-show="loadingSlots" class="text-center py-2">
+              <div class="animate-spin w-5 h-5 border-2 border-t-transparent rounded-full mx-auto" style="border-color: var(--theme-primary); border-top-color: transparent"></div>
+            </div>
+
+            <div x-show="selectedTime" class="space-y-4 pt-4 border-t" style="border-color: var(--theme-secondary)">
+              <div>
+                <label class="block text-sm font-medium mb-1">Full Name *</label>
+                <input type="text" x-model="customerName" class="w-full px-3 py-2 border rounded" style="border-color: var(--theme-secondary)" required />
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Email *</label>
+                <input type="email" x-model="customerEmail" class="w-full px-3 py-2 border rounded" style="border-color: var(--theme-secondary)" required />
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Phone</label>
+                <input type="tel" x-model="customerPhone" class="w-full px-3 py-2 border rounded" style="border-color: var(--theme-secondary)" />
+              </div>
+
+              <button
+                type="button"
+                x-show="customerName && customerEmail"
+                @click="submitBooking()"
+                :disabled="submitting"
+                class="btn-primary w-full py-3 text-white font-semibold transition-all disabled:opacity-50"
+              >
+                <span x-show="!submitting">Confirm Booking</span>
+                <span x-show="submitting">Processing...</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="border-t py-6 text-center text-sm opacity-50" style="border-color: var(--theme-secondary)">
+    <p>© {{ new Date().getFullYear() }} {{ business.name }} • Powered by <a href="/" class="hover:underline" style="color: var(--theme-primary)">BookMe</a></p>
+  </footer>
+
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script>
+    function bookingApp() {
+      return {
+        selectedService: null,
+        selectedStaffId: '',
+        selectedDate: '',
+        selectedTime: '',
+        timeSlots: [],
+        loadingSlots: false,
+        customerName: '',
+        customerEmail: '',
+        customerPhone: '',
+        submitting: false,
+        minDate: new Date().toISOString().split('T')[0],
+
+        selectService(id, name, price, duration) {
+          this.selectedService = { id, name, price, duration }
+          this.selectedTime = ''
+          this.timeSlots = []
+          if (this.selectedDate) this.fetchTimeSlots()
+        },
+
+        async fetchTimeSlots() {
+          if (!this.selectedService || !this.selectedDate) return
+          this.loadingSlots = true
+          this.timeSlots = []
+          try {
+            let url = `/book/{{ business.slug }}/service/${this.selectedService.id}/slots?date=${this.selectedDate}`
+            if (this.selectedStaffId) url += `&staffId=${this.selectedStaffId}`
+            const res = await fetch(url)
+            const data = await res.json()
+            this.timeSlots = data.slots || []
+          } catch (e) { console.error(e) }
+          this.loadingSlots = false
+        },
+
+        formatTime(time) {
+          if (!time) return ''
+          const [h, m] = time.split(':')
+          const hour = parseInt(h)
+          const suffix = hour >= 12 ? 'PM' : 'AM'
+          const displayHour = hour % 12 || 12
+          return `${displayHour}:${m} ${suffix}`
+        },
+
+        async submitBooking() {
+          if (this.submitting) return
+          this.submitting = true
+          try {
+            const res = await fetch(`/book/{{ business.slug }}/service/${this.selectedService.id}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrfToken }}' },
+              body: JSON.stringify({
+                date: this.selectedDate, time: this.selectedTime,
+                customerName: this.customerName, customerEmail: this.customerEmail,
+                customerPhone: this.customerPhone, staffId: this.selectedStaffId || undefined
+              })
+            })
+            const data = await res.json()
+            if (data.redirect) window.location.href = data.redirect
+          } catch (e) { console.error(e); alert('An error occurred. Please try again.') }
+          this.submitting = false
+        }
+      }
+    }
+  </script>
+</body>
+</html>
+

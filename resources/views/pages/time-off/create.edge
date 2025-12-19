@@ -1,0 +1,123 @@
+@layout('layouts/app')
+
+@set('title', 'Add Time Off - BookMe')
+
+@section('content')
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+      <a href="{{ route('time-off.index') }}" class="inline-flex items-center text-sm text-sand-11 hover:text-sand-12 mb-4">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        Back to Time Off
+      </a>
+      <h1 class="text-2xl font-bold text-sand-12">Add Time Off</h1>
+      <p class="text-sand-11 mt-1">Block time when you or your staff are unavailable</p>
+    </div>
+
+    <form method="POST" action="{{ route('time-off.store') }}" class="bg-white border border-sand-7 rounded-xl p-6 space-y-6" x-data="{ isAllDay: true }">
+      {{ csrfField() }}
+
+      <div>
+        <label for="title" class="block text-sm font-medium text-sand-12 mb-1">Title</label>
+        <input
+          type="text"
+          id="title"
+          name="title"
+          value="{{ old('title') || '' }}"
+          class="w-full px-4 py-2.5 border border-sand-7 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          placeholder="e.g., Holiday, Vacation, Training"
+        />
+      </div>
+
+      @if(staff.length > 1)
+        <div>
+          <label for="userId" class="block text-sm font-medium text-sand-12 mb-1">Staff Member</label>
+          <select
+            id="userId"
+            name="userId"
+            class="w-full px-4 py-2.5 border border-sand-7 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
+          >
+            <option value="">All staff (business-wide)</option>
+            @each(member in staff)
+              <option value="{{ member.id }}">{{ member.fullName }}</option>
+            @endeach
+          </select>
+          <p class="text-xs text-sand-11 mt-1">Leave empty to block time for the entire business</p>
+        </div>
+      @endif
+
+      <div>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            name="isAllDay"
+            value="true"
+            checked
+            @change="isAllDay = $el.checked"
+            class="w-5 h-5 text-primary border-sand-7 rounded focus:ring-primary"
+          />
+          <span class="font-medium text-sand-12">All day</span>
+        </label>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label for="startDate" class="block text-sm font-medium text-sand-12 mb-1">Start Date *</label>
+          <input
+            type="date"
+            id="startDate"
+            name="startDate"
+            value="{{ old('startDate') || '' }}"
+            required
+            class="w-full px-4 py-2.5 border border-sand-7 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          />
+        </div>
+        <div>
+          <label for="endDate" class="block text-sm font-medium text-sand-12 mb-1">End Date *</label>
+          <input
+            type="date"
+            id="endDate"
+            name="endDate"
+            value="{{ old('endDate') || '' }}"
+            required
+            class="w-full px-4 py-2.5 border border-sand-7 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          />
+        </div>
+      </div>
+
+      <div x-show="!isAllDay" x-cloak class="grid grid-cols-2 gap-4">
+        <div>
+          <label for="startTime" class="block text-sm font-medium text-sand-12 mb-1">Start Time *</label>
+          <input
+            type="time"
+            id="startTime"
+            name="startTime"
+            value="{{ old('startTime') || '09:00' }}"
+            class="w-full px-4 py-2.5 border border-sand-7 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          />
+        </div>
+        <div>
+          <label for="endTime" class="block text-sm font-medium text-sand-12 mb-1">End Time *</label>
+          <input
+            type="time"
+            id="endTime"
+            name="endTime"
+            value="{{ old('endTime') || '17:00' }}"
+            class="w-full px-4 py-2.5 border border-sand-7 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          />
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 pt-4">
+        <button type="submit" class="px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary/90">
+          Add Time Off
+        </button>
+        <a href="{{ route('time-off.index') }}" class="px-6 py-2.5 border border-sand-7 text-sand-12 font-medium rounded-lg hover:bg-sand-2">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+@endsection
+

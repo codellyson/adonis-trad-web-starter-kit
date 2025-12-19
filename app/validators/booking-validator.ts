@@ -4,6 +4,7 @@ export const bookingValidator = vine.compile(
   vine.object({
     date: vine.string().trim(),
     time: vine.string().trim(),
+    staffId: vine.number().optional(),
     customerName: vine.string().trim().minLength(2).maxLength(100),
     customerEmail: vine.string().trim().email(),
     customerPhone: vine.string().trim().optional(),

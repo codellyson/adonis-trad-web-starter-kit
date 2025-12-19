@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ business.name }} - Book</title>
+  <meta name="description" content="{{ theme?.tagline || business.description || `Book with ${business.name}` }}" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  @if(theme)
+    <link href="{{ theme.getGoogleFontsUrl() }}" rel="stylesheet" />
+  @endif
+  <style>
+    :root {
+      {{ theme?.getCssVariables() || `
+        --theme-primary: #171717;
+        --theme-secondary: #ffffff;
+        --theme-accent: #525252;
+        --theme-text: #171717;
+        --theme-background: #ffffff;
+        --theme-font-heading: 'DM Sans', sans-serif;
+        --theme-font-body: 'DM Sans', sans-serif;
+      ` }}
+    }
+    body {
+      font-family: var(--theme-font-body);
+      color: var(--theme-text);
+      background-color: var(--theme-background);
+    }
+    h1, h2, h3 {
+      font-family: var(--theme-font-heading);
+    }
+    .btn-primary {
+      background-color: var(--theme-primary);
+      @if(theme?.buttonStyle === 'pill')
+        border-radius: 9999px;
+      @elseif(theme?.buttonStyle === 'square')
+        border-radius: 0;
+      @else
+        border-radius: 0.25rem;
+      @endif
+    }
+    {{ theme?.customCss || '' }}
+  </style>
+</head>
+<body class="min-h-screen" x-data="bookingApp()">
+  <nav class="border-b border-neutral-200">
+    <div class="max-w-3xl mx-auto px-6 py-5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        @if(business.logo)
+          <img src="{{ business.logo }}" alt="{{ business.name }}" class="w-10 h-10 rounded-full object-cover" />
+        @endif
+        <span class="font-semibold">{{ business.name }}</span>
+      </div>
+      <div class="flex gap-2">
+        @if(theme?.socialLinks?.instagram)
+          <a href="{{ theme.socialLinks.instagram }}" target="_blank" class="p-2 hover:bg-neutral-100 rounded-full">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          </a>
+        @endif
+        @if(theme?.socialLinks?.whatsapp)
+          <a href="{{ theme.socialLinks.whatsapp }}" target="_blank" class="p-2 hover:bg-neutral-100 rounded-full">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          </a>
+        @endif
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-6 py-12">
+    @if(theme?.tagline)
+      <p class="text-neutral-500 mb-8">{{ theme.tagline }}</p>
+    @endif
+
+    <div class="space-y-12">
+      <section>
+        <h2 class="text-xs font-medium uppercase tracking-widest text-neutral-400 mb-6">Services</h2>
+        <div class="divide-y divide-neutral-100">
+          @each(service in services)
+            <div 
+              class="py-5 flex justify-between items-center cursor-pointer group"
+              :class="{ 'opacity-100': selectedService?.id === {{ service.id }}, 'hover:opacity-80': selectedService?.id !== {{ service.id }} }"
+              @click="selectService({{ service.id }}, '{{ service.name }}', {{ service.price }}, {{ service.durationMinutes || 30 }})"
+            >
+              <div class="flex items-center gap-4">
+                <div 
+                  class="w-3 h-3 rounded-full border-2 transition-all"
+                  :class="selectedService?.id === {{ service.id }} ? 'border-current bg-current' : 'border-neutral-300'"
+                ></div>
+                <div>
+                  <h3 class="font-medium">{{ service.name }}</h3>
+                  <p class="text-sm text-neutral-400">{{ service.durationMinutes || 30 }} min</p>
+                </div>
+              </div>
+              <span class="font-medium">₦{{ Number(service.price).toLocaleString() }}</span>
+            </div>
+          @end
+        </div>
+      </section>
+
+      <section x-show="selectedService" x-cloak>
+        <h2 class="text-xs font-medium uppercase tracking-widest text-neutral-400 mb-6">When</h2>
+        
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <input type="date" x-model="selectedDate" @change="fetchTimeSlots()" :min="minDate" class="w-full px-4 py-3 border border-neutral-200 rounded focus:outline-none focus:border-neutral-400" />
+          </div>
+          
+          @if(staff.length > 1)
+            <div>
+              <select x-model="selectedStaffId" @change="fetchTimeSlots()" class="w-full px-4 py-3 border border-neutral-200 rounded focus:outline-none focus:border-neutral-400 bg-white">
+                <option value="">Any staff</option>
+                @each(member in staff)
+                  <option value="{{ member.id }}">{{ member.fullName }}</option>
+                @end
+              </select>
+            </div>
+          @endif
+        </div>
+
+        <div x-show="selectedDate && !loadingSlots" class="mt-6">
+          <div x-show="timeSlots.length === 0" class="text-neutral-400 text-sm">
+            No available times
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <template x-for="slot in timeSlots" :key="slot.time">
+              <button
+                type="button"
+                @click="slot.available && (selectedTime = slot.time)"
+                :disabled="!slot.available"
+                :class="selectedTime === slot.time ? 'bg-neutral-900 text-white' : slot.available ? 'bg-neutral-100 hover:bg-neutral-200' : 'bg-neutral-100 opacity-40 cursor-not-allowed'"
+                class="px-4 py-2 text-sm rounded transition-colors"
+                x-text="formatTime(slot.time)"
+              ></button>
+            </template>
+          </div>
+        </div>
+
+        <div x-show="loadingSlots" class="mt-6">
+          <div class="animate-pulse h-10 w-32 bg-neutral-100 rounded"></div>
+        </div>
+      </section>
+
+      <section x-show="selectedTime" x-cloak>
+        <h2 class="text-xs font-medium uppercase tracking-widest text-neutral-400 mb-6">Your Details</h2>
+        <div class="space-y-4">
+          <input type="text" x-model="customerName" placeholder="Name" class="w-full px-4 py-3 border border-neutral-200 rounded focus:outline-none focus:border-neutral-400" required />
+          <input type="email" x-model="customerEmail" placeholder="Email" class="w-full px-4 py-3 border border-neutral-200 rounded focus:outline-none focus:border-neutral-400" required />
+          <input type="tel" x-model="customerPhone" placeholder="Phone (optional)" class="w-full px-4 py-3 border border-neutral-200 rounded focus:outline-none focus:border-neutral-400" />
+        </div>
+      </section>
+
+      <section x-show="selectedTime && customerName && customerEmail" x-cloak>
+        <div class="flex justify-between items-center py-4 border-t border-neutral-200">
+          <div>
+            <p class="text-sm text-neutral-400">Total</p>
+            <p class="text-2xl font-semibold">₦<span x-text="selectedService?.price?.toLocaleString()"></span></p>
+          </div>
+          <button
+            @click="submitBooking()"
+            :disabled="submitting"
+            class="btn-primary px-8 py-3 text-white font-medium transition-opacity disabled:opacity-50"
+          >
+            <span x-show="!submitting">Book</span>
+            <span x-show="submitting">...</span>
+          </button>
+        </div>
+      </section>
+
+      @if(theme?.showAbout && theme?.aboutText)
+        <section class="pt-8 border-t border-neutral-200">
+          <h2 class="text-xs font-medium uppercase tracking-widest text-neutral-400 mb-4">About</h2>
+          <p class="text-neutral-600 leading-relaxed whitespace-pre-line">{{ theme.aboutText }}</p>
+        </section>
+      @endif
+
+      @if(theme?.showGallery && theme?.galleryImages && theme.galleryImages.length > 0)
+        <section>
+          <h2 class="text-xs font-medium uppercase tracking-widest text-neutral-400 mb-4">Work</h2>
+          <div class="grid grid-cols-3 gap-2">
+            @each(image in theme.galleryImages)
+              <div class="aspect-square">
+                <img src="{{ image }}" alt="" class="w-full h-full object-cover" />
+              </div>
+            @end
+          </div>
+        </section>
+      @endif
+    </div>
+  </main>
+
+  <footer class="max-w-3xl mx-auto px-6 py-8 text-center text-neutral-300 text-sm">
+    <a href="/" class="hover:text-neutral-500">BookMe</a>
+  </footer>
+
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script>
+    function bookingApp() {
+      return {
+        selectedService: null,
+        selectedStaffId: '',
+        selectedDate: '',
+        selectedTime: '',
+        timeSlots: [],
+        loadingSlots: false,
+        customerName: '',
+        customerEmail: '',
+        customerPhone: '',
+        submitting: false,
+        minDate: new Date().toISOString().split('T')[0],
+
+        selectService(id, name, price, duration) {
+          this.selectedService = { id, name, price, duration }
+          this.selectedTime = ''
+          this.timeSlots = []
+          if (this.selectedDate) {
+            this.fetchTimeSlots()
+          }
+        },
+
+        async fetchTimeSlots() {
+          if (!this.selectedService || !this.selectedDate) return
+          this.loadingSlots = true
+          this.timeSlots = []
+          try {
+            let url = `/book/{{ business.slug }}/service/${this.selectedService.id}/slots?date=${this.selectedDate}`
+            if (this.selectedStaffId) {
+              url += `&staffId=${this.selectedStaffId}`
+            }
+            const res = await fetch(url)
+            const data = await res.json()
+            this.timeSlots = data.slots || []
+          } catch (e) {
+            console.error(e)
+          }
+          this.loadingSlots = false
+        },
+
+        formatTime(time) {
+          if (!time) return ''
+          const [h, m] = time.split(':')
+          const hour = parseInt(h)
+          const suffix = hour >= 12 ? 'PM' : 'AM'
+          const displayHour = hour % 12 || 12
+          return `${displayHour}:${m} ${suffix}`
+        },
+
+        async submitBooking() {
+          if (this.submitting) return
+          this.submitting = true
+          try {
+            const res = await fetch(`/book/{{ business.slug }}/service/${this.selectedService.id}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrfToken }}'
+              },
+              body: JSON.stringify({
+                date: this.selectedDate,
+                time: this.selectedTime,
+                customerName: this.customerName,
+                customerEmail: this.customerEmail,
+                customerPhone: this.customerPhone,
+                staffId: this.selectedStaffId || undefined
+              })
+            })
+            const data = await res.json()
+            if (data.redirect) {
+              window.location.href = data.redirect
+            }
+          } catch (e) {
+            console.error(e)
+            alert('Something went wrong')
+          }
+          this.submitting = false
+        }
+      }
+    }
+  </script>
+</body>
+</html>
+

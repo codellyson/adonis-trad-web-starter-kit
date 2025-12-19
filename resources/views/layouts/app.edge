@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Pay for YouTube Premium in Naira. Virtual cards that actually work." />
-    <title>{{ title ?? 'Payment Facilitator' }}</title>
+    <meta name="description" content="BookMe - The easiest way for service businesses to accept online bookings and payments." />
+    <title>{{ title ?? 'BookMe' }}</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net" />
     <link
@@ -76,9 +76,7 @@
     @include('partials/toast')
     
     <div class="min-h-screen flex flex-col">
-      @if(auth.user)
-        @include('partials/navbar')
-      @endif
+      @include('partials/navbar')
 
       <main class="flex-1">
         @!section('content')
