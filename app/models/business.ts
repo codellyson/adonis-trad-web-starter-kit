@@ -1,12 +1,14 @@
 import { DateTime } from 'luxon'
 import { BaseModel, column, hasMany, hasOne } from '@adonisjs/lucid/orm'
 import type { HasMany, HasOne } from '@adonisjs/lucid/types/relations'
+import env from '#start/env'
 import User from '#models/user'
 import Service from '#models/service'
 import Availability from '#models/availability'
 import TimeOff from '#models/time-off'
 import Booking from '#models/booking'
 import BusinessTheme from '#models/business-theme'
+import Subscription from '#models/subscription'
 
 export default class Business extends BaseModel {
   @column({ isPrimary: true })
@@ -90,7 +92,35 @@ export default class Business extends BaseModel {
   @hasOne(() => BusinessTheme)
   declare theme: HasOne<typeof BusinessTheme>
 
+  @hasOne(() => Subscription)
+  declare subscription: HasOne<typeof Subscription>
+
   get bookingUrl() {
-    return `https://${this.slug}.bookme.ng`
+    const isDev = env.get('NODE_ENV') === 'development'
+    const port = env.get('PORT', 3333)
+
+    if (isDev) {
+      return `http://${this.slug}.localhost:${port}`
+    }
+
+    const domain = env.get('APP_DOMAIN', 'fastappoint.com')
+    return `https://${this.slug}.${domain}`
+  }
+
+  async getActiveSubscription() {
+    return await Subscription.query()
+      .where('businessId', this.id)
+      .where('status', 'active')
+      .where('currentPeriodEnd', '>', DateTime.now().toSQL()!)
+      .preload('plan')
+      .first()
+  }
+
+  async getCurrentSubscription() {
+    return await Subscription.query()
+      .where('businessId', this.id)
+      .orderBy('createdAt', 'desc')
+      .preload('plan')
+      .first()
   }
 }

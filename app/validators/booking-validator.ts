@@ -11,3 +11,10 @@ export const bookingValidator = vine.compile(
     notes: vine.string().trim().maxLength(500).optional(),
   })
 )
+
+export const rescheduleValidator = vine.compile(
+  vine.object({
+    date: vine.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/),
+    time: vine.string().trim().regex(/^\d{2}:\d{2}$/),
+  })
+)

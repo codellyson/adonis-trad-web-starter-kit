@@ -44,6 +44,7 @@
       filter: brightness(1.1);
     }
     {{ theme?.customCss || '' }}
+    [x-cloak] { display: none !important; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col" x-data="bookingApp()">
@@ -183,9 +184,9 @@
             </div>
 
             @if(staff.length > 1)
-              <div>
+              <div class="mb-2">
                 <label class="block text-sm font-medium mb-1">Preferred Staff</label>
-                <select x-model="selectedStaffId" @change="fetchTimeSlots()" class="w-full px-3 py-2 border rounded" style="border-color: var(--theme-secondary)">
+                <select x-model="selectedStaffId" @change="selectedDate && fetchTimeSlots()" class="w-full px-3 py-2 border rounded" style="border-color: var(--theme-secondary)">
                   <option value="">No preference</option>
                   @each(member in staff)
                     <option value="{{ member.id }}">{{ member.fullName }}</option>
@@ -194,34 +195,7 @@
               </div>
             @endif
 
-            <div>
-              <label class="block text-sm font-medium mb-1">Date *</label>
-              <input type="date" x-model="selectedDate" @change="fetchTimeSlots()" :min="minDate" class="w-full px-3 py-2 border rounded" style="border-color: var(--theme-secondary)" required />
-            </div>
-
-            <div x-show="selectedDate && !loadingSlots">
-              <label class="block text-sm font-medium mb-1">Time *</label>
-              <div x-show="timeSlots.length === 0" class="text-sm opacity-50 py-2">
-                No available times for this date
-              </div>
-              <div class="grid grid-cols-3 gap-2">
-                <template x-for="slot in timeSlots" :key="slot.time">
-                  <button
-                    type="button"
-                    @click="slot.available && (selectedTime = slot.time)"
-                    :disabled="!slot.available"
-                    :style="selectedTime === slot.time ? 'background-color: var(--theme-primary); color: white; border-color: var(--theme-primary)' : 'border-color: var(--theme-secondary)'"
-                    :class="{ 'opacity-40 cursor-not-allowed': !slot.available }"
-                    class="px-2 py-2 text-sm border rounded transition-colors"
-                    x-text="formatTime(slot.time)"
-                  ></button>
-                </template>
-              </div>
-            </div>
-
-            <div x-show="loadingSlots" class="text-center py-2">
-              <div class="animate-spin w-5 h-5 border-2 border-t-transparent rounded-full mx-auto" style="border-color: var(--theme-primary); border-top-color: transparent"></div>
-            </div>
+            @include('partials/booking-datetime-picker')
 
             <div x-show="selectedTime" class="space-y-4 pt-4 border-t" style="border-color: var(--theme-secondary)">
               <div>
@@ -255,12 +229,15 @@
   </main>
 
   <footer class="border-t py-6 text-center text-sm opacity-50" style="border-color: var(--theme-secondary)">
-    <p>© {{ new Date().getFullYear() }} {{ business.name }} • Powered by <a href="/" class="hover:underline" style="color: var(--theme-primary)">BookMe</a></p>
+    <p>© {{ new Date().getFullYear() }} {{ business.name }} • Powered by <a href="/" class="hover:underline" style="color: var(--theme-primary)">FastAppoint</a></p>
   </footer>
 
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <script>
     function bookingApp() {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      
       return {
         selectedService: null,
         selectedStaffId: '',
@@ -273,6 +250,10 @@
         customerPhone: '',
         submitting: false,
         minDate: new Date().toISOString().split('T')[0],
+        datePickerOpen: false,
+        calMonth: today.getMonth(),
+        calYear: today.getFullYear(),
+        timeFilter: 'all',
 
         selectService(id, name, price, duration) {
           this.selectedService = { id, name, price, duration }
@@ -304,6 +285,87 @@
           return `${displayHour}:${m} ${suffix}`
         },
 
+        formatDisplayDate(dateStr) {
+          if (!dateStr) return ''
+          const date = new Date(dateStr + 'T00:00:00')
+          return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+        },
+
+        get calMonthYearDisplay() {
+          return new Date(this.calYear, this.calMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+        },
+
+        get calendarDays() {
+          const days = []
+          const firstDay = new Date(this.calYear, this.calMonth, 1)
+          const lastDay = new Date(this.calYear, this.calMonth + 1, 0)
+          const startingDay = firstDay.getDay()
+          const todayDate = new Date()
+          todayDate.setHours(0, 0, 0, 0)
+
+          for (let i = 0; i < startingDay; i++) {
+            days.push({ date: null, day: null })
+          }
+
+          for (let i = 1; i <= lastDay.getDate(); i++) {
+            const date = new Date(this.calYear, this.calMonth, i)
+            const dateStr = this.formatDateValue(date)
+            days.push({
+              date: dateStr,
+              day: i,
+              disabled: date < todayDate,
+              today: date.getTime() === todayDate.getTime(),
+              selected: dateStr === this.selectedDate
+            })
+          }
+          return days
+        },
+
+        get filteredTimeSlots() {
+          if (this.timeFilter === 'all') return this.timeSlots
+          return this.timeSlots.filter(slot => {
+            const hour = parseInt(slot.time.split(':')[0])
+            if (this.timeFilter === 'morning') return hour >= 6 && hour < 12
+            if (this.timeFilter === 'afternoon') return hour >= 12 && hour < 17
+            if (this.timeFilter === 'evening') return hour >= 17 && hour < 24
+            return true
+          })
+        },
+
+        formatDateValue(date) {
+          return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+        },
+
+        pickDate(dateStr) {
+          this.selectedDate = dateStr
+          this.datePickerOpen = false
+          this.selectedTime = ''
+          this.timeSlots = []
+          this.fetchTimeSlots()
+        },
+
+        prevCalMonth() {
+          if (this.calMonth === 0) { this.calMonth = 11; this.calYear-- } else { this.calMonth-- }
+        },
+
+        nextCalMonth() {
+          if (this.calMonth === 11) { this.calMonth = 0; this.calYear++ } else { this.calMonth++ }
+        },
+
+        goToToday() {
+          const todayDate = new Date()
+          this.calMonth = todayDate.getMonth()
+          this.calYear = todayDate.getFullYear()
+          this.pickDate(this.formatDateValue(todayDate))
+        },
+
+        clearDateSelection() {
+          this.selectedDate = ''
+          this.selectedTime = ''
+          this.timeSlots = []
+          this.datePickerOpen = false
+        },
+
         async submitBooking() {
           if (this.submitting) return
           this.submitting = true
@@ -318,7 +380,11 @@
               })
             })
             const data = await res.json()
-            if (data.redirect) window.location.href = data.redirect
+            if (data.error) {
+              alert(data.error)
+            } else if (data.redirect) {
+              window.location.href = data.redirect
+            }
           } catch (e) { console.error(e); alert('An error occurred. Please try again.') }
           this.submitting = false
         }

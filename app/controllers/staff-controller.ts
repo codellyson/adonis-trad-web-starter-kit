@@ -5,6 +5,7 @@ import Service from '#models/service'
 import Availability from '#models/availability'
 import { staffValidator, staffUpdateValidator, staffAvailabilityValidator } from '#validators/staff-validator'
 import { errors } from '@vinejs/vine'
+import subscriptionService from '#services/subscription-service'
 
 export default class StaffController {
   async index({ view, auth }: HttpContext) {
@@ -33,6 +34,13 @@ export default class StaffController {
     const currentUser = auth.user!
 
     try {
+      // Check subscription limits
+      const canAdd = await subscriptionService.canAddStaff(currentUser.businessId!)
+      if (!canAdd.allowed) {
+        session.flash('error', canAdd.reason || 'Cannot add more staff members')
+        return response.redirect().toRoute('subscriptions.select')
+      }
+
       const data = await request.validateUsing(staffValidator)
 
       const existingUser = await User.findBy('email', data.email)

@@ -197,8 +197,8 @@
           <h3 class="font-semibold text-sand-12 mb-2">Your Booking URL</h3>
           <p class="text-sm text-sand-11 mb-3">Share this link with your customers</p>
           <div class="flex items-center gap-2 bg-white rounded-lg p-3">
-            <code class="text-sm text-primary flex-1 truncate">{{ business.slug }}.bookme.ng</code>
-            <button onclick="navigator.clipboard.writeText('https://{{ business.slug }}.bookme.ng')" class="p-1.5 hover:bg-sand-2 rounded">
+            <code class="text-sm text-primary flex-1 truncate">{{ bookingUrl(business.slug).replace('http://', '').replace('https://', '') }}</code>
+            <button onclick="navigator.clipboard.writeText('{{ bookingUrl(business.slug) }}')" class="p-1.5 hover:bg-sand-2 rounded">
               <svg class="w-4 h-4 text-sand-11" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
               </svg>

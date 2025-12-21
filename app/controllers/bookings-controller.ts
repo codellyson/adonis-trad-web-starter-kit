@@ -6,15 +6,17 @@ import { DateTime } from 'luxon'
 export default class BookingsController {
   async index({ view, auth, request }: HttpContext) {
     const user = auth.user!
-    const page = request.qs().page || 1
+    const page = Number(request.qs().page) || 1
     const status = request.qs().status || 'all'
     const date = request.qs().date || ''
+    const search = request.qs().search?.trim() || ''
 
     const business = await Business.findOrFail(user.businessId)
 
     const query = Booking.query()
       .where('businessId', business.id)
       .preload('service')
+      .preload('staff')
       .orderBy('date', 'desc')
       .orderBy('startTime', 'desc')
 
@@ -26,9 +28,18 @@ export default class BookingsController {
       query.where('date', date)
     }
 
-    const bookings = await query.paginate(page, 20)
+    if (search) {
+      query.where((q) => {
+        q.whereILike('customerName', `%${search}%`)
+          .orWhereILike('customerEmail', `%${search}%`)
+          .orWhereILike('customerPhone', `%${search}%`)
+      })
+    }
 
-    return view.render('pages/bookings/index', { bookings, business, status, date })
+    const bookings = await query.paginate(page, 20)
+    bookings.baseUrl('/bookings')
+
+    return view.render('pages/bookings/index', { bookings, business, status, date, search })
   }
 
   async show({ params, view, auth, response }: HttpContext) {

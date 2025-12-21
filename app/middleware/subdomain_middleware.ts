@@ -6,7 +6,7 @@ import env from '#start/env'
 export default class SubdomainMiddleware {
   async handle(ctx: HttpContext, next: NextFn) {
     const host = ctx.request.host() || ''
-    const baseDomain = env.get('APP_DOMAIN', 'bookme.ng')
+    const baseDomain = env.get('APP_DOMAIN', 'fastappoint.com')
     const url = ctx.request.url()
 
     // Skip subdomain processing for main domain access

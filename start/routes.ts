@@ -12,17 +12,34 @@ const SettingsController = () => import('#controllers/settings-controller')
 const TimeOffController = () => import('#controllers/time-off-controller')
 const FeaturedController = () => import('#controllers/featured-controller')
 const ThemeController = () => import('#controllers/theme-controller')
+const WebhookController = () => import('#controllers/webhook-controller')
+const SubscriptionsController = () => import('#controllers/subscriptions_controller')
 
-router.get('/', async ({ view }) => view.render('pages/landing')).as('home')
+const HomeController = () => import('#controllers/home-controller')
+router.get('/', [HomeController, 'index']).as('home')
 
 router
   .group(() => {
     router.get('/signup', [AuthController, 'showSignup']).as('auth.signup.show')
-    router.post('/signup', [AuthController, 'signup']).as('auth.signup')
+    router
+      .post('/signup', [AuthController, 'signup'])
+      .as('auth.signup')
+      .use(middleware.rateLimit({ store: 'signup', maxAttempts: 5, decayMinutes: 15 }))
     router.get('/login', [AuthController, 'showLogin']).as('auth.login.show')
-    router.post('/login', [AuthController, 'login']).as('auth.login')
+    router
+      .post('/login', [AuthController, 'login'])
+      .as('auth.login')
+      .use(middleware.rateLimit({ store: 'login', maxAttempts: 5, decayMinutes: 15 }))
     router.get('/forgot-password', [AuthController, 'showForgotPassword']).as('auth.forgot.show')
-    router.post('/forgot-password', [AuthController, 'forgotPassword']).as('auth.forgot')
+    router
+      .post('/forgot-password', [AuthController, 'forgotPassword'])
+      .as('auth.forgot')
+      .use(middleware.rateLimit({ store: 'forgot', maxAttempts: 3, decayMinutes: 60 }))
+    router.get('/reset-password', [AuthController, 'showResetPassword']).as('auth.reset.show')
+    router
+      .post('/reset-password', [AuthController, 'resetPassword'])
+      .as('auth.reset')
+      .use(middleware.rateLimit({ store: 'reset', maxAttempts: 5, decayMinutes: 15 }))
   })
   .use(middleware.guest())
 
@@ -135,8 +152,26 @@ router
     router.get('/featured/:id/payment', [FeaturedController, 'payment']).as('featured.payment')
     router.get('/featured/:id/verify', [FeaturedController, 'verify']).as('featured.verify')
     router.get('/featured/:id/cancel', [FeaturedController, 'cancel']).as('featured.cancel')
+
+    router.get('/subscriptions', [SubscriptionsController, 'index']).as('subscriptions.index')
+    router.get('/subscriptions/select', [SubscriptionsController, 'select']).as('subscriptions.select')
+    router.get('/subscriptions/manage', [SubscriptionsController, 'manage']).as('subscriptions.manage')
+    router.post('/subscriptions/subscribe', [SubscriptionsController, 'subscribe']).as('subscriptions.subscribe')
+    router.get('/subscriptions/:planId/payment', [SubscriptionsController, 'payment']).as('subscriptions.payment')
+    router.get('/subscriptions/:planId/verify', [SubscriptionsController, 'verify']).as('subscriptions.verify')
+    router.post('/subscriptions/cancel', [SubscriptionsController, 'cancel']).as('subscriptions.cancel')
+    router.post('/subscriptions/resume', [SubscriptionsController, 'resume']).as('subscriptions.resume')
+    router.post('/subscriptions/change', [SubscriptionsController, 'change']).as('subscriptions.change')
   })
   .use(middleware.auth())
+
+router
+  .get('/book/find', [BookingController, 'findBooking'])
+  .as('book.find')
+router
+  .post('/book/lookup', [BookingController, 'lookupBooking'])
+  .as('book.lookup')
+  .use(middleware.rateLimit({ store: 'lookup', maxAttempts: 10, decayMinutes: 5 }))
 
 router
   .group(() => {
@@ -144,7 +179,11 @@ router
     router
       .get('/:slug/service/:serviceId/slots', [BookingController, 'getTimeSlots'])
       .as('book.slots')
-    router.post('/:slug/service/:serviceId', [BookingController, 'createBooking']).as('book.create')
+      .use(middleware.rateLimit({ store: 'slots', maxAttempts: 60, decayMinutes: 1 }))
+    router
+      .post('/:slug/service/:serviceId', [BookingController, 'createBooking'])
+      .as('book.create')
+      .use(middleware.rateLimit({ store: 'booking', maxAttempts: 10, decayMinutes: 5 }))
     router
       .get('/:slug/booking/:bookingId/payment', [BookingController, 'showPayment'])
       .as('book.payment')
@@ -160,13 +199,17 @@ router
     router
       .post('/:slug/booking/:bookingId/cancel', [BookingController, 'cancelBooking'])
       .as('book.cancel')
+      .use(middleware.rateLimit({ store: 'cancel', maxAttempts: 5, decayMinutes: 5 }))
     router
       .get('/:slug/booking/:bookingId/reschedule', [BookingController, 'showReschedule'])
       .as('book.reschedule.show')
     router
       .post('/:slug/booking/:bookingId/reschedule', [BookingController, 'rescheduleBooking'])
       .as('book.reschedule')
+      .use(middleware.rateLimit({ store: 'reschedule', maxAttempts: 5, decayMinutes: 5 }))
   })
   .prefix('/book')
 
 router.get('/api/featured', [FeaturedController, 'getActiveFeatured']).as('api.featured')
+
+router.post('/webhooks/paystack', [WebhookController, 'paystack']).as('webhooks.paystack')

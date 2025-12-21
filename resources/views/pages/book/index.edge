@@ -1,397 +1,831 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Book with {{ business.name }}</title>
-  <link rel="preconnect" href="https://fonts.bunny.net" />
-  <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700&display=swap" rel="stylesheet" />
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Book with {{ business.name }}
+    </title>
+    <link rel="preconnect" href="https://fonts.bunny.net" />
+    <link
+      href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700&display=swap"
+      rel="stylesheet"
+    />
 
-  <style>
-    :root {
-      --sand-1: #fdfdfc;
-      --sand-2: #f9f9f8;
-      --sand-3: #f1f0ef;
-      --sand-4: #e9e8e6;
-      --sand-5: #e2e1de;
-      --sand-6: #dad9d6;
-      --sand-7: #cfceca;
-      --sand-8: #bcbbb5;
-      --sand-9: #8d8d86;
-      --sand-10: #82827c;
-      --sand-11: #63635e;
-      --sand-12: #21201c;
-      --success: #10b981;
-      --error: #ef4444;
-      --warning: #f59e0b;
-    }
-  </style>
+    <style>
+      :root {
+        --sand-1: #fdfdfc;
+        --sand-2: #f9f9f8;
+        --sand-3: #f1f0ef;
+        --sand-4: #e9e8e6;
+        --sand-5: #e2e1de;
+        --sand-6: #dad9d6;
+        --sand-7: #cfceca;
+        --sand-8: #bcbbb5;
+        --sand-9: #8d8d86;
+        --sand-10: #82827c;
+        --sand-11: #63635e;
+        --sand-12: #21201c;
+        --success: #10b981;
+        --error: #ef4444;
+        --warning: #f59e0b;
+      }
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ["Instrument Sans", "sans-serif"]
-          },
-          colors: {
-            primary: {
-              DEFAULT: "#5A45FF",
-              lighter: "#a599ff"
+      [x-cloak] {
+        display: none !important;
+      }
+    </style>
+
+    <script src="https://cdn.tailwindcss.com">
+
+    </script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: [ "Instrument Sans", "sans-serif" ]
             },
-            sand: {
-              1: "var(--sand-1)",
-              2: "var(--sand-2)",
-              3: "var(--sand-3)",
-              4: "var(--sand-4)",
-              5: "var(--sand-5)",
-              6: "var(--sand-6)",
-              7: "var(--sand-7)",
-              8: "var(--sand-8)",
-              9: "var(--sand-9)",
-              10: "var(--sand-10)",
-              11: "var(--sand-11)",
-              12: "var(--sand-12)"
-            },
-            success: "var(--success)",
-            error: "var(--error)",
-            warning: "var(--warning)"
+            colors: {
+              primary: {
+                DEFAULT: "#5A45FF",
+                lighter: "#a599ff"
+              },
+              sand: {
+                1: "var(--sand-1)",
+                2: "var(--sand-2)",
+                3: "var(--sand-3)",
+                4: "var(--sand-4)",
+                5: "var(--sand-5)",
+                6: "var(--sand-6)",
+                7: "var(--sand-7)",
+                8: "var(--sand-8)",
+                9: "var(--sand-9)",
+                10: "var(--sand-10)",
+                11: "var(--sand-11)",
+                12: "var(--sand-12)"
+              },
+              success: "var(--success)",
+              error: "var(--error)",
+              warning: "var(--warning)"
+            }
           }
         }
-      }
-    };
-  </script>
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-</head>
-<body class="bg-sand-2 text-sand-12 min-h-screen font-sans">
-  <div x-data="bookingApp()" class="max-w-2xl mx-auto px-4 py-8">
-    {{-- Business Header --}}
-    <div class="text-center mb-8">
-      @if(business.logo)
-        <img src="{{ business.logo }}" alt="{{ business.name }}" class="w-20 h-20 rounded-full mx-auto mb-4 object-cover" />
-      @else
-        <div class="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-          <span class="text-3xl font-bold text-primary">{{ business.name.charAt(0) }}</span>
-        </div>
-      @endif
-      <h1 class="text-2xl font-bold text-sand-12">{{ business.name }}</h1>
-      @if(business.description)
-        <p class="text-sand-11 mt-2">{{ business.description }}</p>
-      @endif
-      <p class="text-sm text-sand-10 mt-1">{{ business.category }}</p>
-    </div>
+      };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js">
 
-    {{-- Step Indicator --}}
-    <div class="flex items-center justify-center gap-2 mb-8">
-      <div class="flex items-center gap-2">
-        <div :class="step >= 1 ? 'bg-primary text-white' : 'bg-sand-4 text-sand-11'" class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium">1</div>
-        <span class="text-sm text-sand-11 hidden sm:block">Service</span>
-      </div>
-      <div class="w-8 h-px bg-sand-6"></div>
-      <div class="flex items-center gap-2">
-        <div :class="step >= 2 ? 'bg-primary text-white' : 'bg-sand-4 text-sand-11'" class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium">2</div>
-        <span class="text-sm text-sand-11 hidden sm:block">Staff</span>
-      </div>
-      <div class="w-8 h-px bg-sand-6"></div>
-      <div class="flex items-center gap-2">
-        <div :class="step >= 3 ? 'bg-primary text-white' : 'bg-sand-4 text-sand-11'" class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium">3</div>
-        <span class="text-sm text-sand-11 hidden sm:block">Date & Time</span>
-      </div>
-      <div class="w-8 h-px bg-sand-6"></div>
-      <div class="flex items-center gap-2">
-        <div :class="step >= 4 ? 'bg-primary text-white' : 'bg-sand-4 text-sand-11'" class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium">4</div>
-        <span class="text-sm text-sand-11 hidden sm:block">Details</span>
-      </div>
-    </div>
-
-    {{-- Step 1: Select Service --}}
-    <div x-show="step === 1" class="space-y-4">
-      <h2 class="text-lg font-semibold text-sand-12">Select a service</h2>
-      @each(service in business.services)
-        <button
-          @click="selectService({{ service.id }}, '{{ service.name }}', {{ service.durationMinutes }}, {{ service.price }}, {{ JSON.stringify(service.staff ? service.staff.map(s => ({ id: s.id, fullName: s.fullName })) : []) }})"
-          class="w-full text-left p-4 bg-white border border-sand-7 rounded-xl hover:border-primary transition-colors"
-          :class="selectedService?.id === {{ service.id }} ? 'border-primary ring-2 ring-primary/20' : ''"
-        >
-          <div class="flex justify-between items-start">
-            <div>
-              <h3 class="font-medium text-sand-12">{{ service.name }}</h3>
-              @if(service.description)
-                <p class="text-sm text-sand-11 mt-1">{{ service.description }}</p>
-              @endif
-              <p class="text-sm text-sand-10 mt-2">{{ service.formattedDuration }}</p>
-            </div>
-            <span class="font-semibold text-primary">₦{{ Number(service.price).toLocaleString() }}</span>
+    </script>
+  </head>
+  <body class="bg-sand-2 text-sand-12 min-h-screen font-sans">
+    <div x-data="bookingApp()" class="max-w-2xl mx-auto px-4 py-8">
+      {{-- Business Header --}}
+      <div class="text-center mb-8">
+        @if(business.logo)
+          <img
+            src="{{ business.logo }}"
+            alt="{{ business.name }}"
+            class="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
+          />
+        @else
+          <div class="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <span class="text-3xl font-bold text-primary">{{ business.name.charAt(0) }}</span>
           </div>
-        </button>
-      @endeach
-    </div>
-
-    {{-- Step 2: Select Staff --}}
-    <div x-show="step === 2" class="space-y-6">
-      <button @click="step = 1" class="text-sm text-primary hover:underline">← Back to services</button>
-
-      <div class="bg-white border border-sand-7 rounded-xl p-4">
-        <p class="text-sm text-sand-11 mb-1">Selected service:</p>
-        <p class="font-medium text-sand-12" x-text="selectedService?.name"></p>
-        <p class="text-sm text-sand-10" x-text="selectedService?.duration + ' min • ₦' + selectedService?.price.toLocaleString()"></p>
+        @endif
+        <h1 class="text-2xl font-bold text-sand-12">
+          {{ business.name }}
+        </h1>
+        @if(business.description)
+          <p class="text-sand-11 mt-2">
+            {{ business.description }}
+          </p>
+        @endif
+        <p class="text-sm text-sand-10 mt-1">
+          {{ business.category }}
+        </p>
       </div>
 
-      <div>
-        <h3 class="font-medium text-sand-12 mb-3">Choose your provider</h3>
-        <div class="space-y-3">
-          <button
-            @click="selectStaff(null, 'Any available')"
-            class="w-full text-left p-4 bg-white border border-sand-7 rounded-xl hover:border-primary transition-colors"
-            :class="selectedStaff === null && staffSelected ? 'border-primary ring-2 ring-primary/20' : ''"
+      {{-- Step Indicator --}}
+      <div class="flex items-center justify-center gap-2 mb-8">
+        <div class="flex items-center gap-2">
+          <div
+            :class="step >= 1 ? 'bg-primary text-white' : 'bg-sand-4 text-sand-11'"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
           >
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-sand-3 flex items-center justify-center">
-                <svg class="w-5 h-5 text-sand-11" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
-              </div>
+            1
+          </div>
+          <span class="text-sm text-sand-11 hidden sm:block">Service</span>
+        </div>
+        <div class="w-8 h-px bg-sand-6">
+        </div>
+        <div class="flex items-center gap-2">
+          <div
+            :class="step >= 2 ? 'bg-primary text-white' : 'bg-sand-4 text-sand-11'"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
+          >
+            2
+          </div>
+          <span class="text-sm text-sand-11 hidden sm:block">Staff</span>
+        </div>
+        <div class="w-8 h-px bg-sand-6">
+        </div>
+        <div class="flex items-center gap-2">
+          <div
+            :class="step >= 3 ? 'bg-primary text-white' : 'bg-sand-4 text-sand-11'"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
+          >
+            3
+          </div>
+          <span class="text-sm text-sand-11 hidden sm:block">Date & Time</span>
+        </div>
+        <div class="w-8 h-px bg-sand-6">
+        </div>
+        <div class="flex items-center gap-2">
+          <div
+            :class="step >= 4 ? 'bg-primary text-white' : 'bg-sand-4 text-sand-11'"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
+          >
+            4
+          </div>
+          <span class="text-sm text-sand-11 hidden sm:block">Details</span>
+        </div>
+      </div>
+
+      {{-- Step 1: Select Service --}}
+      <div x-show="step === 1" class="space-y-4">
+        <h2 class="text-lg font-semibold text-sand-12">
+          Select a service
+        </h2>
+        @each(service in business.services)
+          <button
+            @click="selectService({{ service.id }}, '{{ service.name }}', {{ service.durationMinutes }}, {{ service.price }}, {{ JSON.stringify(service.staff ? service.staff.map(s => ({ id: s.id, fullName: s.fullName })) : []) }})"
+            class="w-full text-left p-4 bg-white border border-sand-7 rounded-xl hover:border-primary transition-colors"
+            :class="selectedService?.id === {{ service.id }} ? 'border-primary ring-2 ring-primary/20' : ''"
+          >
+            <div class="flex justify-between items-start">
               <div>
-                <p class="font-medium text-sand-12">Any available</p>
-                <p class="text-sm text-sand-11">We'll assign the first available staff member</p>
+                <h3 class="font-medium text-sand-12">
+                  {{ service.name }}
+                </h3>
+                @if(service.description)
+                  <p class="text-sm text-sand-11 mt-1">
+                    {{ service.description }}
+                  </p>
+                @endif
+                <p class="text-sm text-sand-10 mt-2">
+                  {{ service.formattedDuration }}
+                </p>
               </div>
+              <span class="font-semibold text-primary">₦{{ Number(service.price).toLocaleString() }}</span>
             </div>
           </button>
+        @endeach
+      </div>
 
-          <template x-for="staff in availableStaff" :key="staff.id">
+      {{-- Step 2: Select Staff --}}
+      <div x-show="step === 2" class="space-y-6">
+        <button @click="step = 1" class="text-sm text-primary hover:underline">← Back to services</button>
+
+        <div class="bg-white border border-sand-7 rounded-xl p-4">
+          <p class="text-sm text-sand-11 mb-1">
+            Selected service:
+          </p>
+          <p class="font-medium text-sand-12" x-text="selectedService?.name">
+          </p>
+          <p
+            class="text-sm text-sand-10"
+            x-text="selectedService?.duration + ' min • ₦' + selectedService?.price.toLocaleString()"
+          >
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-medium text-sand-12 mb-3">
+            Choose your provider
+          </h3>
+          <div class="space-y-3">
             <button
-              @click="selectStaff(staff.id, staff.fullName)"
+              @click="selectStaff(null, 'Any available')"
               class="w-full text-left p-4 bg-white border border-sand-7 rounded-xl hover:border-primary transition-colors"
-              :class="selectedStaff === staff.id ? 'border-primary ring-2 ring-primary/20' : ''"
+              :class="selectedStaff === null && staffSelected ? 'border-primary ring-2 ring-primary/20' : ''"
             >
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold" x-text="staff.fullName.charAt(0).toUpperCase()"></div>
+                <div class="w-10 h-10 rounded-full bg-sand-3 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-sand-11" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                </div>
                 <div>
-                  <p class="font-medium text-sand-12" x-text="staff.fullName"></p>
+                  <p class="font-medium text-sand-12">
+                    Any available
+                  </p>
+                  <p class="text-sm text-sand-11">
+                    We'll assign the first available staff member
+                  </p>
                 </div>
               </div>
             </button>
-          </template>
-        </div>
-      </div>
-    </div>
 
-    {{-- Step 3: Select Date & Time --}}
-    <div x-show="step === 3" class="space-y-6">
-      <button @click="step = 2" class="text-sm text-primary hover:underline">← Back to staff</button>
-
-      <div class="bg-white border border-sand-7 rounded-xl p-4">
-        <p class="text-sm text-sand-11 mb-1">Selected service:</p>
-        <p class="font-medium text-sand-12" x-text="selectedService?.name"></p>
-        <p class="text-sm text-sand-10" x-text="selectedService?.duration + ' min • ₦' + selectedService?.price.toLocaleString()"></p>
-        <p class="text-sm text-sand-11 mt-2">With: <span class="font-medium text-sand-12" x-text="selectedStaffName"></span></p>
-      </div>
-
-      {{-- Date Picker --}}
-      <div>
-        <h3 class="font-medium text-sand-12 mb-3">Select a date</h3>
-        <input
-          type="date"
-          x-model="selectedDate"
-          @change="fetchTimeSlots()"
-          :min="minDate"
-          class="w-full px-4 py-3 border border-sand-7 rounded-lg text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary"
-        />
-      </div>
-
-      {{-- Time Slots --}}
-      <div x-show="selectedDate">
-        <h3 class="font-medium text-sand-12 mb-3">Select a time</h3>
-        <div x-show="loadingSlots" class="text-center py-8 text-sand-11">Loading available times...</div>
-        <div x-show="!loadingSlots && slots.length === 0" class="text-center py-8 text-sand-11">No available times on this date</div>
-        <div x-show="!loadingSlots && slots.length > 0" class="grid grid-cols-3 sm:grid-cols-4 gap-2">
-          <template x-for="slot in slots" :key="slot.time">
-            <button
-              :disabled="!slot.available"
-              @click="selectTime(slot.time)"
-              :class="{
-                'bg-primary text-white': selectedTime === slot.time,
-                'bg-white hover:border-primary': slot.available && selectedTime !== slot.time,
-                'bg-sand-3 text-sand-9 cursor-not-allowed': !slot.available
-              }"
-              class="px-3 py-2 border border-sand-7 rounded-lg text-sm font-medium transition-colors"
-              x-text="formatTime(slot.time)"
-            ></button>
-          </template>
+            <template x-for="staff in availableStaff" :key="staff.id">
+              <button
+                @click="selectStaff(staff.id, staff.fullName)"
+                class="w-full text-left p-4 bg-white border border-sand-7 rounded-xl hover:border-primary transition-colors"
+                :class="selectedStaff === staff.id ? 'border-primary ring-2 ring-primary/20' : ''"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold"
+                    x-text="staff.fullName.charAt(0).toUpperCase()"
+                  >
+                  </div>
+                  <div>
+                    <p class="font-medium text-sand-12" x-text="staff.fullName">
+                    </p>
+                  </div>
+                </div>
+              </button>
+            </template>
+          </div>
         </div>
       </div>
 
-      <button
-        x-show="selectedDate && selectedTime"
-        @click="step = 4"
-        class="w-full py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90"
-      >
-        Continue →
+      {{-- Step 3: Select Date & Time --}}
+      <div x-show="step === 3" class="space-y-6">
+        <button @click="step = 2" class="text-sm text-primary hover:underline">← Back to staff</button>
+
+        <div class="bg-white border border-sand-7 rounded-xl p-4">
+          <p class="text-sm text-sand-11 mb-1">
+            Selected service:
+          </p>
+          <p class="font-medium text-sand-12" x-text="selectedService?.name">
+          </p>
+          <p
+            class="text-sm text-sand-10"
+            x-text="selectedService?.duration + ' min • ₦' + selectedService?.price.toLocaleString()"
+          >
+          </p>
+          <p class="text-sm text-sand-11 mt-2">
+            With: <span class="font-medium text-sand-12" x-text="selectedStaffName"></span>
+          </p>
+        </div>
+
+        {{-- Date Picker --}}
+        <div class="date-picker-container">
+          <h3 class="font-medium text-sand-12 mb-3">
+            Select a date
+          </h3>
+          <button
+            type="button"
+            @click="datePickerOpen = !datePickerOpen"
+            class="w-full px-4 py-3.5 border-2 border-sand-6 rounded-xl bg-white text-left flex items-center justify-between gap-3 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            :class="{ 'border-primary': datePickerOpen }"
+          >
+            <div class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                :class="selectedDate ? 'bg-primary text-white' : 'bg-sand-3'"
+              >
+                <svg
+                  class="w-5 h-5"
+                  :class="selectedDate ? '' : 'text-sand-11'"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p class="text-xs text-sand-10 font-medium">
+                  Select Date
+                </p>
+                <p
+                  class="text-sand-12 font-semibold"
+                  x-text="selectedDate ? formatDate(selectedDate) : 'Choose a date'"
+                >
+                </p>
+              </div>
+            </div>
+            <svg
+              class="w-5 h-5 text-sand-9 transition-transform"
+              :class="{ 'rotate-180': datePickerOpen }"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <div
+            x-show="datePickerOpen"
+            x-cloak
+            @click.away="datePickerOpen = false"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 -translate-y-2"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            class="mt-2 bg-white border-2 border-sand-6 rounded-xl shadow-xl overflow-hidden"
+          >
+            <div class="p-4">
+              <div class="flex items-center justify-between mb-4">
+                <button @click="prevCalMonth()" type="button" class="p-2 hover:bg-sand-2 rounded-lg transition-colors">
+                  <svg class="w-5 h-5 text-sand-11" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <h4 class="font-semibold text-sand-12" x-text="calMonthYearDisplay">
+                </h4>
+                <button @click="nextCalMonth()" type="button" class="p-2 hover:bg-sand-2 rounded-lg transition-colors">
+                  <svg class="w-5 h-5 text-sand-11" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+
+              <div class="grid grid-cols-7 gap-1 mb-2">
+                <template x-for="day in ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']" :key="day">
+                  <div class="text-center text-xs font-medium text-sand-9 py-2" x-text="day">
+                  </div>
+                </template>
+              </div>
+
+              <div class="grid grid-cols-7 gap-1">
+                <template x-for="(day, index) in calendarDays" :key="index">
+                  <button
+                    type="button"
+                    @click="day.date && !day.disabled && pickDate(day.date)"
+                    :disabled="!day.date || day.disabled"
+                    :class="{
+                    'bg-primary text-white font-semibold': day.selected,
+                    'hover:bg-sand-2': day.date && !day.disabled && !day.selected,
+                    'text-sand-12': day.date && !day.disabled && !day.selected,
+                    'text-sand-5 cursor-not-allowed': day.disabled,
+                    'text-transparent': !day.date,
+                    'ring-2 ring-primary ring-offset-1': day.today && !day.selected
+                  }"
+                    class="aspect-square rounded-lg flex items-center justify-center text-sm transition-all"
+                    x-text="day.day || ''"
+                  ></button>
+                </template>
+              </div>
+            </div>
+
+            <div class="border-t border-sand-6 px-4 py-2.5 bg-sand-2 flex items-center justify-between">
+              <button
+                @click="goToToday()"
+                type="button"
+                class="text-sm text-primary font-medium hover:text-primary/80"
+              >Today</button>
+              <button
+                @click="selectedDate = ''; datePickerOpen = false; selectedTime = ''; slots = []"
+                type="button"
+                class="text-sm text-sand-11 hover:text-sand-12"
+              >Clear</button>
+            </div>
+          </div>
+        </div>
+
+        {{-- Time Slots --}}
+        <div x-show="selectedDate">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-8 h-8 rounded-lg bg-sand-3 flex items-center justify-center">
+              <svg class="w-4 h-4 text-sand-11" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <h3 class="font-medium text-sand-12">
+              Select a time
+            </h3>
+          </div>
+
+          <div x-show="loadingSlots" class="flex items-center justify-center py-8 bg-sand-2 rounded-xl">
+            <div class="flex items-center gap-3">
+              <div class="animate-spin w-5 h-5 border-2 border-primary border-t-transparent rounded-full">
+              </div>
+              <span class="text-sand-11 text-sm">Loading available times...</span>
+            </div>
+          </div>
+
+          <div x-show="!loadingSlots && slots.length === 0" class="text-center py-8 bg-sand-2 rounded-xl">
+            <svg class="w-10 h-10 mx-auto mb-2 text-sand-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <p class="text-sand-11 text-sm">
+              No available times on this date
+            </p>
+          </div>
+
+          <div x-show="!loadingSlots && slots.length > 0" class="space-y-3">
+            <div class="flex flex-wrap gap-2">
+              <button
+                type="button"
+                @click="timeFilter = 'all'"
+                :class="timeFilter === 'all' ? 'bg-sand-12 text-white' : 'bg-sand-3 text-sand-11 hover:bg-sand-4'"
+                class="px-3 py-1.5 text-xs font-medium rounded-full transition-colors"
+              >All</button>
+              <button
+                type="button"
+                @click="timeFilter = 'morning'"
+                :class="timeFilter === 'morning' ? 'bg-sand-12 text-white' : 'bg-sand-3 text-sand-11 hover:bg-sand-4'"
+                class="px-3 py-1.5 text-xs font-medium rounded-full transition-colors"
+              >🌅 Morning</button>
+              <button
+                type="button"
+                @click="timeFilter = 'afternoon'"
+                :class="timeFilter === 'afternoon' ? 'bg-sand-12 text-white' : 'bg-sand-3 text-sand-11 hover:bg-sand-4'"
+                class="px-3 py-1.5 text-xs font-medium rounded-full transition-colors"
+              >☀️ Afternoon</button>
+              <button
+                type="button"
+                @click="timeFilter = 'evening'"
+                :class="timeFilter === 'evening' ? 'bg-sand-12 text-white' : 'bg-sand-3 text-sand-11 hover:bg-sand-4'"
+                class="px-3 py-1.5 text-xs font-medium rounded-full transition-colors"
+              >🌙 Evening</button>
+            </div>
+
+            <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              <template x-for="slot in filteredSlots" :key="slot.time">
+                <button
+                  type="button"
+                  :disabled="!slot.available"
+                  @click="selectTime(slot.time)"
+                  :class="{
+                  'bg-primary text-white ring-2 ring-primary/20 ring-offset-1': selectedTime === slot.time,
+                  'bg-white hover:border-primary': slot.available && selectedTime !== slot.time,
+                  'bg-sand-3 text-sand-9 cursor-not-allowed line-through': !slot.available
+                }"
+                  class="px-3 py-2.5 border border-sand-6 rounded-lg text-sm font-medium transition-all"
+                  x-text="formatTime(slot.time)"
+                ></button>
+              </template>
+            </div>
+
+            {{-- Selected time range display --}}
+            <div x-show="selectedTime" class="mt-4 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+              <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <div>
+                  <p class="text-sm text-sand-11">
+                    Your appointment time:
+                  </p>
+                  <p class="font-semibold text-sand-12" x-text="getTimeRange()">
+                  </p>
+                  <p class="text-xs text-sand-10" x-text="'(' + selectedService?.duration + ' minutes)'">
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div x-show="filteredSlots.length === 0" class="text-center py-4">
+              <p class="text-sm text-sand-11">
+                No slots available for this period
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <button
+          x-show="selectedDate && selectedTime"
+          @click="step = 4"
+          class="w-full py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90"
+        >
+          Continue →
       </button>
-    </div>
-
-    {{-- Step 4: Customer Details --}}
-    <div x-show="step === 4" class="space-y-6">
-      <button @click="step = 3" class="text-sm text-primary hover:underline">← Back to date & time</button>
-
-      {{-- Booking Summary --}}
-      <div class="bg-white border border-sand-7 rounded-xl p-4 space-y-2">
-        <p class="font-medium text-sand-12" x-text="selectedService?.name"></p>
-        <p class="text-sm text-sand-11">With: <span class="font-medium" x-text="selectedStaffName"></span></p>
-        <p class="text-sm text-sand-11" x-text="formatDate(selectedDate) + ' at ' + formatTime(selectedTime)"></p>
-        <p class="text-sm text-sand-11" x-text="selectedService?.duration + ' minutes'"></p>
-        <div class="border-t border-sand-6 pt-2 mt-2">
-          <p class="font-semibold text-sand-12">Total: <span class="text-primary" x-text="'₦' + selectedService?.price.toLocaleString()"></span></p>
-        </div>
       </div>
 
-      {{-- Customer Form --}}
-      <form method="POST" action="/book/{{ business.slug }}/service/" x-bind:action="'/book/{{ business.slug }}/service/' + selectedService?.id">
-        {{ csrfField() }}
-        <input type="hidden" name="date" x-bind:value="selectedDate" />
-        <input type="hidden" name="time" x-bind:value="selectedTime" />
-        <input type="hidden" name="staffId" x-bind:value="selectedStaff" />
+      {{-- Step 4: Customer Details --}}
+      <div x-show="step === 4" class="space-y-6">
+        <button @click="step = 3" class="text-sm text-primary hover:underline">← Back to date & time</button>
 
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-sand-12 mb-2">Your Name</label>
-            <input
-              type="text"
-              name="customerName"
-              required
-              class="w-full px-4 py-3 border border-sand-7 rounded-lg text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="John Doe"
-            />
+        {{-- Booking Summary --}}
+        <div class="bg-white border border-sand-7 rounded-xl p-4 space-y-3">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
+              </svg>
+            </div>
+            <div class="flex-1">
+              <p class="font-semibold text-sand-12" x-text="selectedService?.name">
+              </p>
+              <p class="text-sm text-sand-11 mt-0.5">
+                With <span class="font-medium text-sand-12" x-text="selectedStaffName"></span>
+              </p>
+            </div>
           </div>
 
-          <div>
-            <label class="block text-sm font-medium text-sand-12 mb-2">Email Address</label>
-            <input
-              type="email"
-              name="customerEmail"
-              required
-              class="w-full px-4 py-3 border border-sand-7 rounded-lg text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="john@example.com"
-            />
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-lg bg-sand-3 flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 text-sand-11" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+            <div>
+              <p class="font-medium text-sand-12" x-text="formatDate(selectedDate)">
+              </p>
+              <p
+                class="text-sm text-sand-11"
+                x-text="getTimeRange() + ' (' + selectedService?.duration + ' min)'"
+              >
+              </p>
+            </div>
           </div>
 
-          <div>
-            <label class="block text-sm font-medium text-sand-12 mb-2">Phone Number <span class="text-sand-9">(optional)</span></label>
-            <input
-              type="tel"
-              name="customerPhone"
-              class="w-full px-4 py-3 border border-sand-7 rounded-lg text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="+234 800 000 0000"
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-sand-12 mb-2">Notes <span class="text-sand-9">(optional)</span></label>
-            <textarea
-              name="notes"
-              rows="2"
-              class="w-full px-4 py-3 border border-sand-7 rounded-lg text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Any special requests..."
-            ></textarea>
+          <div class="border-t border-sand-6 pt-3 mt-3 flex items-center justify-between">
+            <span class="text-sand-11">Total</span>
+            <span class="text-lg font-bold text-primary" x-text="'₦' + selectedService?.price.toLocaleString()"></span>
           </div>
         </div>
 
-        <button type="submit" class="w-full mt-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90">
-          Proceed to Payment →
+        {{-- Customer Form --}}
+        <form
+          method="POST"
+          action="/book/{{ business.slug }}/service/"
+          x-bind:action="'/book/{{ business.slug }}/service/' + selectedService?.id"
+        >
+          {{ csrfField() }}
+        <input type="hidden" name="date" x-bind:value="selectedDate" />
+          <input type="hidden" name="time" x-bind:value="selectedTime" />
+          <input type="hidden" name="endTime" x-bind:value="getEndTime()" />
+          <input type="hidden" name="staffId" x-bind:value="selectedStaff" />
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-sand-12 mb-2">Your Name</label>
+              <input
+                type="text"
+                name="customerName"
+                required
+                class="w-full px-4 py-3 border border-sand-7 rounded-lg text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="John Doe"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-sand-12 mb-2">Email Address</label>
+              <input
+                type="email"
+                name="customerEmail"
+                required
+                class="w-full px-4 py-3 border border-sand-7 rounded-lg text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="john@example.com"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-sand-12 mb-2">Phone Number <span class="text-sand-9">(optional)</span></label>
+              <input
+                type="tel"
+                name="customerPhone"
+                class="w-full px-4 py-3 border border-sand-7 rounded-lg text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="+234 800 000 0000"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-sand-12 mb-2">Notes <span class="text-sand-9">(optional)</span></label>
+              <textarea
+                name="notes"
+                rows="2"
+                class="w-full px-4 py-3 border border-sand-7 rounded-lg text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Any special requests..."
+              ></textarea>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            class="w-full mt-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90"
+          >
+            Proceed to Payment →
         </button>
-      </form>
+        </form>
+      </div>
+
+      {{-- Footer --}}
+      <div class="mt-12 text-center text-sm text-sand-10 space-y-2">
+        <div>
+          <a href="{{ route('book.find') }}" class="text-primary hover:underline">Find My Booking</a>
+        </div>
+        <div>
+          Powered by <a href="/" class="text-primary hover:underline">FastAppoint</a>
+        </div>
+      </div>
     </div>
 
-    {{-- Footer --}}
-    <div class="mt-12 text-center text-sm text-sand-10">
-      Powered by <a href="/" class="text-primary hover:underline">BookMe</a>
-    </div>
-  </div>
-
-  <script>
-    function bookingApp() {
-      return {
-        step: 1,
-        selectedService: null,
-        selectedStaff: null,
-        selectedStaffName: 'Any available',
-        staffSelected: false,
-        availableStaff: [],
-        selectedDate: '',
-        selectedTime: '',
-        slots: [],
-        loadingSlots: false,
-        minDate: new Date().toISOString().split('T')[0],
-        businessSlug: '{{ business.slug }}',
-
-        selectService(id, name, duration, price, staff) {
-          this.selectedService = { id, name, duration, price };
-          this.availableStaff = staff || [];
-          this.selectedStaff = null;
-          this.staffSelected = false;
-          this.selectedStaffName = 'Any available';
-          this.selectedDate = '';
-          this.selectedTime = '';
-          this.slots = [];
-
-          if (this.availableStaff.length === 0) {
-            this.staffSelected = true;
-            this.step = 3;
-          } else {
-            this.step = 2;
-          }
-        },
-
-        selectStaff(id, name) {
-          this.selectedStaff = id;
-          this.selectedStaffName = name;
-          this.staffSelected = true;
-          this.selectedDate = '';
-          this.selectedTime = '';
-          this.slots = [];
-          this.step = 3;
-        },
-
-        async fetchTimeSlots() {
-          if (!this.selectedDate || !this.selectedService) return;
-          this.loadingSlots = true;
-          this.selectedTime = '';
-          try {
-            let url = `/book/${this.businessSlug}/service/${this.selectedService.id}/slots?date=${this.selectedDate}`;
-            if (this.selectedStaff) {
-              url += `&staffId=${this.selectedStaff}`;
-            }
-            const res = await fetch(url);
-            const data = await res.json();
-            this.slots = data.slots || [];
-          } catch (e) {
-            console.error(e);
+    <script>
+      function bookingApp() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return {
+          step: 1,
+          selectedService: null,
+          selectedStaff: null,
+          selectedStaffName: "Any available",
+          staffSelected: false,
+          availableStaff: [],
+          selectedDate: "",
+          selectedTime: "",
+          slots: [],
+          loadingSlots: false,
+          minDate: new Date().toISOString().split("T")[0],
+          businessSlug: "{{ business.slug }}",
+          datePickerOpen: false,
+          calMonth: today.getMonth(),
+          calYear: today.getFullYear(),
+          timeFilter: "all",
+          selectService(id, name, duration, price, staff) {
+            this.selectedService = {
+              id: id,
+              name: name,
+              duration: duration,
+              price: price
+            };
+            this.availableStaff = staff || [];
+            this.selectedStaff = null;
+            this.staffSelected = false;
+            this.selectedStaffName = "Any available";
+            this.selectedDate = "";
+            this.selectedTime = "";
             this.slots = [];
+            if (this.availableStaff.length === 0) {
+              this.staffSelected = true;
+              this.step = 3;
+            } else {
+              this.step = 2;
+            }
+          },
+          selectStaff(id, name) {
+            this.selectedStaff = id;
+            this.selectedStaffName = name;
+            this.staffSelected = true;
+            this.selectedDate = "";
+            this.selectedTime = "";
+            this.slots = [];
+            this.step = 3;
+          },
+          async fetchTimeSlots() {
+            if (!this.selectedDate || !this.selectedService) return;
+            this.loadingSlots = true;
+            this.selectedTime = "";
+            try {
+              let url = `/book/${this.businessSlug}/service/${this.selectedService.id}/slots?date=${this.selectedDate}`;
+              if (this.selectedStaff) {
+                url += `&staffId=${this.selectedStaff}`;
+              }
+              const res = await fetch(url);
+              const data = await res.json();
+              this.slots = data.slots || [];
+            } catch (e) {
+              console.error(e);
+              this.slots = [];
+            }
+            this.loadingSlots = false;
+          },
+          selectTime(time) {
+            this.selectedTime = time;
+          },
+          getEndTime() {
+            if (!this.selectedTime || !this.selectedService) return "";
+            const [ h, m ] = this.selectedTime.split(":").map(Number);
+            const totalMinutes = h * 60 + m + this.selectedService.duration;
+            const endH = Math.floor(totalMinutes / 60) % 24;
+            const endM = totalMinutes % 60;
+            return `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
+          },
+          getTimeRange() {
+            const endTime = this.getEndTime();
+            if (!this.selectedTime || !endTime) return "";
+            return `${this.formatTime(this.selectedTime)} - ${this.formatTime(endTime)}`;
+          },
+          formatTime(time) {
+            if (!time) return "";
+            const [ h, m ] = time.split(":");
+            const hour = parseInt(h);
+            const suffix = hour >= 12 ? "PM" : "AM";
+            const displayHour = hour % 12 || 12;
+            return `${displayHour}:${m} ${suffix}`;
+          },
+          formatDate(dateStr) {
+            if (!dateStr) return "";
+            const date = new Date(dateStr + "T00:00:00");
+            return date.toLocaleDateString("en-US", {
+              weekday: "short",
+              month: "short",
+              day: "numeric"
+            });
+          },
+          get calMonthYearDisplay() {
+            return new Date(this.calYear, this.calMonth).toLocaleDateString("en-US", {
+              month: "long",
+              year: "numeric"
+            });
+          },
+          get calendarDays() {
+            const days = [];
+            const firstDay = new Date(this.calYear, this.calMonth, 1);
+            const lastDay = new Date(this.calYear, this.calMonth + 1, 0);
+            const startingDay = firstDay.getDay();
+            const todayDate = new Date();
+            todayDate.setHours(0, 0, 0, 0);
+            for (let i = 0; i < startingDay; i++) days.push({
+              date: null,
+              day: null
+            });
+            for (let i = 1; i <= lastDay.getDate(); i++) {
+              const date = new Date(this.calYear, this.calMonth, i);
+              const dateStr = this.formatDateValue(date);
+              days.push({
+                date: dateStr,
+                day: i,
+                disabled: date < todayDate,
+                today: date.getTime() === todayDate.getTime(),
+                selected: dateStr === this.selectedDate
+              });
+            }
+            return days;
+          },
+          get filteredSlots() {
+            if (this.timeFilter === "all") return this.slots;
+            return this.slots.filter(slot => {
+              const hour = parseInt(slot.time.split(":")[0]);
+              if (this.timeFilter === "morning") return hour >= 6 && hour < 12;
+              if (this.timeFilter === "afternoon") return hour >= 12 && hour < 17;
+              if (this.timeFilter === "evening") return hour >= 17 && hour < 24;
+              return true;
+            });
+          },
+          formatDateValue(date) {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+          },
+          pickDate(dateStr) {
+            this.selectedDate = dateStr;
+            this.datePickerOpen = false;
+            this.selectedTime = "";
+            this.slots = [];
+            this.fetchTimeSlots();
+          },
+          prevCalMonth() {
+            if (this.calMonth === 0) {
+              this.calMonth = 11;
+              this.calYear--;
+            } else {
+              this.calMonth--;
+            }
+          },
+          nextCalMonth() {
+            if (this.calMonth === 11) {
+              this.calMonth = 0;
+              this.calYear++;
+            } else {
+              this.calMonth++;
+            }
+          },
+          goToToday() {
+            const todayDate = new Date();
+            this.calMonth = todayDate.getMonth();
+            this.calYear = todayDate.getFullYear();
+            this.pickDate(this.formatDateValue(todayDate));
           }
-          this.loadingSlots = false;
-        },
-
-        selectTime(time) {
-          this.selectedTime = time;
-        },
-
-        formatTime(time) {
-          if (!time) return '';
-          const [h, m] = time.split(':');
-          const hour = parseInt(h);
-          const suffix = hour >= 12 ? 'PM' : 'AM';
-          const displayHour = hour % 12 || 12;
-          return `${displayHour}:${m} ${suffix}`;
-        },
-
-        formatDate(dateStr) {
-          if (!dateStr) return '';
-          const date = new Date(dateStr);
-          return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-        }
+        };
       }
-    }
-  </script>
-</body>
+    </script>
+  </body>
 </html>

@@ -1,0 +1,151 @@
+@layout('layouts/app')
+
+@set('title', 'Subscription - FastAppoint')
+
+@section('content')
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-sand-12">Subscription Management</h1>
+      <p class="text-sand-11 mt-1">Manage your subscription and billing</p>
+    </div>
+
+    @if(flashMessages.has('success'))
+      <div class="mb-6 bg-success/10 border border-success text-success rounded-lg p-4 text-sm">
+        {{ flashMessages.get('success') }}
+      </div>
+    @endif
+
+    @if(flashMessages.has('error'))
+      <div class="mb-6 bg-error/10 border border-error text-error rounded-lg p-4 text-sm">
+        {{ flashMessages.get('error') }}
+      </div>
+    @endif
+
+    {{-- Current Subscription --}}
+    <div class="bg-white border border-sand-7 rounded-xl p-6 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-sand-12">Current Plan</h2>
+        @if(subscription)
+          <span class="px-3 py-1 rounded-full text-sm font-medium {{ subscription.status === 'active' ? 'bg-success/10 text-success' : subscription.status === 'past_due' ? 'bg-warning/10 text-warning' : 'bg-error/10 text-error' }}">
+            {{ subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1).replace('_', ' ') }}
+          </span>
+        @endif
+      </div>
+
+      @if(subscription?.status === 'trialing')
+        <div class="space-y-4">
+          <div class="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-4">
+            <p class="text-sm font-medium text-sand-12 mb-1">7-Day Free Trial</p>
+            <p class="text-xs text-sand-11">You're currently on a free trial</p>
+          </div>
+          
+          @if(subscription.trialEndsAt)
+            <div>
+              <p class="text-sm text-sand-11">Trial ends</p>
+              <p class="font-medium text-sand-12">{{ subscription.trialEndsAt.toFormat('MMMM d, yyyy') }}</p>
+              @if(trialDaysRemaining > 0)
+                <p class="text-xs text-sand-10">{{ trialDaysRemaining }} days remaining</p>
+              @else
+                <p class="text-xs text-error">Trial expired - Please choose a plan</p>
+              @endif
+            </div>
+          @endif
+
+          <div class="pt-4 border-t border-sand-6">
+            <a href="{{ route('subscriptions.select') }}" class="block w-full py-2.5 text-center bg-primary text-white font-medium rounded-lg hover:bg-primary/90">
+              Choose a Plan
+            </a>
+          </div>
+        </div>
+      @elseif(subscription && subscription.plan)
+        <div class="space-y-4">
+          <div>
+            <p class="text-sm text-sand-11">Plan</p>
+            <p class="text-lg font-semibold text-sand-12">{{ subscription.plan.displayName }}</p>
+            <p class="text-sm text-sand-10">{{ subscription.plan.formattedPrice }}/month</p>
+          </div>
+
+          @if(subscription.currentPeriodEnd)
+            <div>
+              <p class="text-sm text-sand-11">Next billing date</p>
+              <p class="font-medium text-sand-12">{{ subscription.currentPeriodEnd.toFormat('MMMM d, yyyy') }}</p>
+              <p class="text-xs text-sand-10">{{ subscription.daysUntilRenewal }} days remaining</p>
+            </div>
+          @endif
+
+          @if(subscription.cancelAtPeriodEnd)
+            <div class="bg-warning/10 border border-warning text-warning rounded-lg p-4">
+              <p class="text-sm font-medium">Subscription will be cancelled on {{ subscription.currentPeriodEnd?.toFormat('MMMM d, yyyy') }}</p>
+            </div>
+          @endif
+
+          <div class="flex gap-3 pt-4 border-t border-sand-6">
+            @if(subscription.cancelAtPeriodEnd)
+              <form method="POST" action="{{ route('subscriptions.resume') }}">
+                {{ csrfField() }}
+                <button type="submit" class="px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-primary/90">
+                  Resume Subscription
+                </button>
+              </form>
+            @else
+              <form method="POST" action="{{ route('subscriptions.cancel') }}" onsubmit="return confirm('Are you sure you want to cancel? Your subscription will remain active until the end of the billing period.')">
+                {{ csrfField() }}
+                <button type="submit" class="px-4 py-2 border border-error text-error font-medium rounded-lg hover:bg-error/5">
+                  Cancel Subscription
+                </button>
+              </form>
+            @endif
+            <a href="{{ route('subscriptions.select') }}" class="px-4 py-2 border border-sand-7 text-sand-12 font-medium rounded-lg hover:bg-sand-2">
+              Change Plan
+            </a>
+          </div>
+        </div>
+      @else
+        <div class="text-center py-8">
+          <p class="text-sand-11 mb-4">No active subscription</p>
+          <a href="{{ route('subscriptions.select') }}" class="inline-block px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary/90">
+            Choose a Plan
+          </a>
+        </div>
+      @endif
+    </div>
+
+    {{-- Available Plans --}}
+    <div class="bg-white border border-sand-7 rounded-xl p-6">
+      <h2 class="text-lg font-semibold text-sand-12 mb-4">Available Plans</h2>
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+        @each(plan in plans)
+          <div class="border border-sand-6 rounded-lg p-4 {{ subscription?.plan?.id === plan.id ? 'ring-2 ring-primary' : '' }}">
+            <div class="mb-3">
+              <h3 class="font-semibold text-sand-12">{{ plan.displayName }}</h3>
+              <p class="text-2xl font-bold text-sand-12 mt-1">{{ plan.formattedPrice }}</p>
+              @if(plan.price > 0)
+                <p class="text-xs text-sand-10">/month</p>
+              @endif
+            </div>
+            @if(subscription?.plan?.id === plan.id)
+              <button disabled class="w-full py-2 text-sm font-medium rounded-lg bg-sand-3 text-sand-9 cursor-not-allowed">
+                Current Plan
+              </button>
+            @else
+              <form method="POST" action="{{ route('subscriptions.change') }}">
+                {{ csrfField() }}
+                <input type="hidden" name="planId" value="{{ plan.id }}" />
+                <button type="submit" class="w-full py-2 text-sm font-medium rounded-lg border border-sand-7 text-sand-12 hover:bg-sand-2">
+                  @if(plan.price < (subscription?.plan?.price || 0))
+                    Downgrade
+                  @elseif(plan.price > (subscription?.plan?.price || 0))
+                    Upgrade
+                  @else
+                    Switch
+                  @endif
+                </button>
+              </form>
+            @endif
+          </div>
+        @endeach
+      </div>
+    </div>
+  </div>
+@endsection
+

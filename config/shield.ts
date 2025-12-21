@@ -1,48 +1,56 @@
 import { defineConfig } from '@adonisjs/shield'
 
 const shieldConfig = defineConfig({
-  /**
-   * Configure CSP policies for your app. Refer documentation
-   * to learn more
-   */
   csp: {
-    enabled: false,
-    directives: {},
+    enabled: true,
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "'unsafe-eval'",
+        'https://js.paystack.co',
+        'https://cdn.jsdelivr.net',
+        'https://cdn.tailwindcss.com',
+      ],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        'https://fonts.googleapis.com',
+        'https://fonts.bunny.net',
+        'https://cdn.tailwindcss.com',
+      ],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://fonts.bunny.net', 'data:'],
+      imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
+      connectSrc: ["'self'", 'https://api.paystack.co', 'https://*.paystack.co'],
+      frameSrc: ["'self'", 'https://checkout.paystack.com'],
+      frameAncestors: ["'none'"],
+      formAction: ["'self'"],
+      baseUri: ["'self'"],
+      objectSrc: ["'none'"],
+    },
     reportOnly: false,
   },
 
-  /**
-   * Configure CSRF protection options. Refer documentation
-   * to learn more
-   */
   csrf: {
     enabled: true,
-    exceptRoutes: [],
+    exceptRoutes: ['/api/*', '/webhooks/*'],
     enableXsrfCookie: false,
     methods: ['POST', 'PUT', 'PATCH', 'DELETE'],
   },
 
-  /**
-   * Control how your website should be embedded inside
-   * iFrames
-   */
   xFrame: {
     enabled: true,
     action: 'DENY',
   },
 
-  /**
-   * Force browser to always use HTTPS
-   */
   hsts: {
     enabled: true,
     maxAge: '180 days',
+    includeSubDomains: true,
+    preload: true,
   },
 
-  /**
-   * Disable browsers from sniffing the content type of a
-   * response and always rely on the "content-type" header.
-   */
   contentTypeSniffing: {
     enabled: true,
   },

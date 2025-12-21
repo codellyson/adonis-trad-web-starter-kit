@@ -1,4 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import env from '#start/env'
 import Business from '#models/business'
 import Service from '#models/service'
 import Availability from '#models/availability'
@@ -153,7 +154,13 @@ export default class OnboardingController {
     business.isOnboarded = true
     await business.save()
 
-    session.flash('success', `Your booking page is live at ${business.slug}.bookme.ng!`)
+    const isDev = env.get('NODE_ENV') === 'development'
+    const port = env.get('PORT', 3333)
+    const bookingUrl = isDev
+      ? `http://${business.slug}.localhost:${port}`
+      : `https://${business.slug}.${env.get('APP_DOMAIN', 'fastappoint.com')}`
+    
+    session.flash('success', `Your booking page is live at ${bookingUrl.replace('http://', '').replace('https://', '')}!`)
     return response.redirect().toRoute('dashboard')
   }
 }

@@ -1,6 +1,6 @@
 @layout('layouts/app')
 
-@set('title', 'Dashboard - BookMe')
+@set('title', 'Dashboard - FastAppoint')
 
 @section('content')
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -17,13 +17,76 @@
     @endif
 
     @if(business)
+      {{-- Trial Status Banner --}}
+      @if(subscription?.status === 'trialing')
+        @if(trialExpired)
+          <div class="mb-6 bg-error/10 border-2 border-error rounded-xl p-6">
+            <div class="flex items-start gap-4">
+              <div class="flex-shrink-0">
+                <svg class="w-6 h-6 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+              </div>
+              <div class="flex-1">
+                <h3 class="font-semibold text-error mb-1">Your 7-Day Free Trial Has Expired</h3>
+                <p class="text-sm text-sand-11 mb-4">
+                  Choose a plan to continue using FastAppoint and keep your booking page active.
+                </p>
+                <a href="{{ route('subscriptions.select') }}" class="inline-block px-6 py-2.5 bg-error text-white font-medium rounded-lg hover:bg-error/90">
+                  Choose a Plan Now
+                </a>
+              </div>
+            </div>
+          </div>
+        @elseif(trialDaysRemaining <= 3)
+          <div class="mb-6 bg-warning/10 border-2 border-warning rounded-xl p-6">
+            <div class="flex items-start gap-4">
+              <div class="flex-shrink-0">
+                <svg class="w-6 h-6 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+              </div>
+              <div class="flex-1">
+                <h3 class="font-semibold text-warning mb-1">Trial Ending Soon</h3>
+                <p class="text-sm text-sand-11 mb-4">
+                  Your 7-day free trial ends in {{ trialDaysRemaining }} {{ trialDaysRemaining === 1 ? 'day' : 'days' }}. Choose a plan to continue without interruption.
+                </p>
+                <a href="{{ route('subscriptions.select') }}" class="inline-block px-6 py-2.5 bg-warning text-white font-medium rounded-lg hover:bg-warning/90">
+                  Choose a Plan
+                </a>
+              </div>
+            </div>
+          </div>
+        @else
+          <div class="mb-6 bg-primary/5 border border-primary/20 rounded-xl p-6">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <div>
+                  <p class="font-medium text-sand-12">You're on a 7-Day Free Trial</p>
+                  <p class="text-sm text-sand-11">
+                    {{ trialDaysRemaining }} {{ trialDaysRemaining === 1 ? 'day' : 'days' }} remaining. 
+                    <a href="{{ route('subscriptions.select') }}" class="text-primary hover:underline font-medium">Choose a plan</a> to continue after your trial.
+                  </p>
+                </div>
+              </div>
+              <a href="{{ route('subscriptions.select') }}" class="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90">
+                View Plans
+              </a>
+            </div>
+          </div>
+        @endif
+      @endif
+
       <div class="mb-8 flex items-center justify-between">
         <div>
           <h1 class="text-2xl font-bold text-sand-12">{{ business.name }}</h1>
           <p class="text-sand-11 mt-1">Welcome back! Here's what's happening today.</p>
         </div>
         <a
-          href="https://{{ business.slug }}.bookme.ng"
+          href="{{ bookingUrl(business.slug) }}"
           target="_blank"
           class="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20"
         >
@@ -105,6 +168,19 @@
             <h2 class="font-semibold text-sand-12">Quick Actions</h2>
           </div>
           <div class="p-5 space-y-3">
+            @if(subscription?.status === 'trialing')
+              <a href="{{ route('subscriptions.select') }}" class="flex items-center gap-3 p-3 rounded-lg bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors">
+                <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <span class="font-medium text-sand-12 block">Choose a Plan</span>
+                  <span class="text-xs text-sand-11">Upgrade before trial ends</span>
+                </div>
+              </a>
+            @endif
             <a href="{{ route('services.create') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-sand-2 transition-colors">
               <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
                 <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -143,9 +219,9 @@
           <div class="p-5 border-t border-sand-7">
             <p class="text-sm text-sand-11 mb-2">Your booking link:</p>
             <div class="flex items-center gap-2 p-3 bg-sand-2 rounded-lg" x-data="{ copied: false }">
-              <code class="text-sm font-mono text-primary flex-1 truncate">{{ business.slug }}.bookme.ng</code>
+              <code class="text-sm font-mono text-primary flex-1 truncate">{{ bookingUrl(business.slug).replace('http://', '').replace('https://', '') }}</code>
               <button
-                @click="navigator.clipboard.writeText('https://{{ business.slug }}.bookme.ng'); copied = true; setTimeout(() => copied = false, 2000)"
+                @click="navigator.clipboard.writeText('{{ bookingUrl(business.slug) }}'); copied = true; setTimeout(() => copied = false, 2000)"
                 class="p-2 hover:bg-sand-4 rounded-lg transition-colors"
               >
                 <svg x-show="!copied" class="w-4 h-4 text-sand-11" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -166,7 +242,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
           </svg>
         </div>
-        <h2 class="text-xl font-semibold text-sand-12 mb-2">Welcome to BookMe!</h2>
+        <h2 class="text-xl font-semibold text-sand-12 mb-2">Welcome to FastAppoint!</h2>
         <p class="text-sand-11 mb-6">You're logged in but don't have a business set up yet.</p>
       </div>
     @endif

@@ -7,4 +7,25 @@ edge.use(migrate)
 
 edge.global('isDev', env.get('NODE_ENV') === 'development')
 edge.global('DateTime', DateTime)
-edge.global('appName', 'BookMe')
+edge.global('appName', 'FastAppoint')
+edge.global('appDomain', env.get('APP_DOMAIN', 'fastappoint.com'))
+edge.global('appUrl', env.get('APP_URL', 'https://fastappoint.com'))
+edge.global('appPort', env.get('PORT', 3333))
+
+// Helper function to generate booking URL
+edge.global('bookingUrl', (slug: string) => {
+  const isDev = env.get('NODE_ENV') === 'development'
+  const port = env.get('PORT', 3333)
+
+  if (isDev) {
+    return `http://${slug}.localhost:${port}`
+  }
+
+  const domain = env.get('APP_DOMAIN', 'fastappoint.com')
+  return `https://${slug}.${domain}`
+})
+
+// Helper to encode URL for sharing
+edge.global('encodeUrl', (url: string) => {
+  return encodeURIComponent(url)
+})

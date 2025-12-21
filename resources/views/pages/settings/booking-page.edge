@@ -1,6 +1,6 @@
 @layout('layouts/app')
 
-@set('title', 'Booking Page - BookMe')
+@set('title', 'Booking Page - FastAppoint')
 
 @section('content')
   <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -22,12 +22,12 @@
           <input
             type="text"
             readonly
-            value="{{ business.slug }}.bookme.ng"
+            value="{{ bookingUrl(business.slug).replace('http://', '').replace('https://', '') }}"
             class="flex-1 px-4 py-2.5 border border-sand-7 rounded-lg bg-sand-2 text-sand-12 font-mono text-sm"
           />
           <button
             type="button"
-            @click="navigator.clipboard.writeText('https://{{ business.slug }}.bookme.ng'); copied = true; setTimeout(() => copied = false, 2000)"
+            @click="navigator.clipboard.writeText('{{ bookingUrl(business.slug) }}'); copied = true; setTimeout(() => copied = false, 2000)"
             class="px-4 py-2.5 border border-sand-7 rounded-lg hover:bg-sand-2 text-sand-12 font-medium"
           >
             <span x-show="!copied">Copy</span>
@@ -41,7 +41,7 @@
         <h3 class="font-medium text-sand-12 mb-4">Quick Share</h3>
         <div class="flex flex-wrap gap-3">
           <a
-            href="https://wa.me/?text=Book%20an%20appointment%20with%20me%20at%20https://{{ business.slug }}.bookme.ng"
+            href="https://wa.me/?text={{ encodeUrl('Book an appointment with me at ' + bookingUrl(business.slug)) }}"
             target="_blank"
             class="inline-flex items-center gap-2 px-4 py-2 bg-[#25D366] text-white rounded-lg hover:bg-[#22c55e]"
           >
@@ -52,7 +52,7 @@
           </a>
 
           <a
-            href="https://twitter.com/intent/tweet?text=Book%20an%20appointment%20with%20me&url=https://{{ business.slug }}.bookme.ng"
+            href="https://twitter.com/intent/tweet?text={{ encodeUrl('Book an appointment with me') }}&url={{ encodeUrl(bookingUrl(business.slug)) }}"
             target="_blank"
             class="inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800"
           >

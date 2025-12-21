@@ -1,16 +1,18 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
 import env from '#start/env'
+import app from '@adonisjs/core/services/app'
 import Business from '#models/business'
 import Booking from '#models/booking'
 import User from '#models/user'
 import Availability from '#models/availability'
 import TimeOff from '#models/time-off'
-import BusinessTheme from '#models/business-theme'
-import { bookingValidator } from '#validators/booking-validator'
+import Transaction from '#models/transaction'
+import { bookingValidator, rescheduleValidator } from '#validators/booking-validator'
 import { errors } from '@vinejs/vine'
 import { randomUUID } from 'node:crypto'
 import emailService from '#services/email-service'
+import subscriptionService from '#services/subscription-service'
 
 export default class BookingController {
   async show({ params, view, response, request }: HttpContext) {
@@ -237,6 +239,8 @@ export default class BookingController {
   }
 
   async createBooking({ params, request, response, session }: HttpContext) {
+    const isJsonRequest = request.header('Content-Type')?.includes('application/json')
+    
     const business = await Business.query()
       .where('slug', params.slug)
       .where('isActive', true)
@@ -248,6 +252,16 @@ export default class BookingController {
     }
 
     try {
+      // Check subscription booking limit (silently for customer-facing endpoint)
+      const canCreate = await subscriptionService.canCreateBooking(business.id)
+      if (!canCreate.allowed) {
+        if (isJsonRequest) {
+          return response.badRequest({ error: 'Booking limit reached. Please contact the business directly.' })
+        }
+        session.flash('error', 'This business has reached their monthly booking limit. Please contact them directly.')
+        return response.redirect().back()
+      }
+
       const data = await request.validateUsing(bookingValidator)
       const service = business.services[0]
 
@@ -279,6 +293,9 @@ export default class BookingController {
       const existingBooking = await bookingQuery.first()
 
       if (existingBooking) {
+        if (isJsonRequest) {
+          return response.conflict({ error: 'This time slot is no longer available' })
+        }
         session.flash('error', 'This time slot is no longer available')
         return response.redirect().back()
       }
@@ -299,12 +316,21 @@ export default class BookingController {
         paymentReference: randomUUID(),
       })
 
+      const paymentUrl = `/book/${params.slug}/booking/${booking.id}/payment`
+      
+      if (isJsonRequest) {
+        return response.json({ success: true, redirect: paymentUrl })
+      }
+
       return response.redirect().toRoute('book.payment', {
         slug: params.slug,
         bookingId: booking.id,
       })
     } catch (error) {
       if (error instanceof errors.E_VALIDATION_ERROR) {
+        if (isJsonRequest) {
+          return response.badRequest({ error: 'Please fill in all required fields' })
+        }
         session.flash('error', 'Please fill in all required fields')
         return response.redirect().back()
       }
@@ -348,7 +374,7 @@ export default class BookingController {
     return view.render('pages/book/confirmation', { booking })
   }
 
-  async verifyPayment({ params, request, response }: HttpContext) {
+  async verifyPayment({ params, request, response, session }: HttpContext) {
     const reference = request.qs().reference
     const booking = await Booking.query()
       .where('id', params.bookingId)
@@ -362,6 +388,12 @@ export default class BookingController {
 
     const secretKey = env.get('PAYSTACK_SECRET_KEY')
     let paymentSuccess = false
+    let transactionData: {
+      amount?: number
+      reference?: string
+      providerReference?: string
+      paidAt?: string
+    } = {}
 
     if (secretKey) {
       try {
@@ -380,20 +412,55 @@ export default class BookingController {
           booking.status = 'confirmed'
           await booking.save()
           paymentSuccess = true
+          transactionData = {
+            amount: data.data.amount / 100,
+            reference: booking.paymentReference || reference,
+            providerReference: data.data.reference,
+            paidAt: data.data.paid_at,
+          }
         }
       } catch (error) {
         console.error('Payment verification error:', error)
       }
-    } else {
+    } else if (!app.inProduction) {
       booking.paymentStatus = 'paid'
       booking.status = 'confirmed'
       await booking.save()
       paymentSuccess = true
+      transactionData = {
+        amount: booking.amount,
+        reference: booking.paymentReference || 'dev-mode',
+        providerReference: 'dev-mode-' + Date.now(),
+      }
+      console.warn('[DEV MODE] Payment auto-confirmed without verification')
+    } else {
+      console.error('[PRODUCTION] Payment verification failed: PAYSTACK_SECRET_KEY not configured')
+      session.flash('error', 'Payment verification failed. Please contact support.')
+      return response.redirect().toRoute('book.payment', {
+        slug: params.slug,
+        bookingId: booking.id,
+      })
     }
 
     if (paymentSuccess) {
+      const platformFee = Math.round(transactionData.amount! * 0.025)
+      await Transaction.create({
+        businessId: booking.businessId,
+        bookingId: booking.id,
+        amount: transactionData.amount!,
+        platformFee,
+        businessAmount: transactionData.amount! - platformFee,
+        status: 'success',
+        provider: 'paystack',
+        reference: transactionData.reference!,
+        providerReference: transactionData.providerReference,
+      })
+
       const dateFormatted = booking.date.toFormat('EEEE, MMMM d, yyyy')
 
+      const appUrl = env.get('APP_URL', `https://${env.get('APP_DOMAIN', 'fastappoint.com')}`)
+      const manageUrl = `${appUrl}/book/${params.slug}/booking/${booking.id}/manage`
+      
       await emailService.sendBookingConfirmation({
         customerName: booking.customerName,
         customerEmail: booking.customerEmail,
@@ -404,6 +471,7 @@ export default class BookingController {
         duration: booking.service.formattedDuration,
         amount: booking.amount,
         reference: booking.paymentReference?.substring(0, 8).toUpperCase() || '',
+        bookingUrl: manageUrl,
       })
 
       await emailService.sendBusinessNotification({
@@ -421,6 +489,43 @@ export default class BookingController {
 
     return response.redirect().toRoute('book.confirmation', {
       slug: params.slug,
+      bookingId: booking.id,
+    })
+  }
+
+  async findBooking({ view }: HttpContext) {
+    return view.render('pages/book/find')
+  }
+
+  async lookupBooking({ request, response, session }: HttpContext) {
+    const { email, reference, businessSlug } = request.only(['email', 'reference', 'businessSlug'])
+
+    if (!email || !reference) {
+      session.flash('error', 'Please provide both email and booking reference')
+      return response.redirect().back()
+    }
+
+    const query = Booking.query()
+      .whereILike('customerEmail', email)
+      .whereILike('paymentReference', `%${reference.toUpperCase()}%`)
+      .preload('business')
+
+    if (businessSlug) {
+      const business = await Business.query().where('slug', businessSlug).first()
+      if (business) {
+        query.where('businessId', business.id)
+      }
+    }
+
+    const booking = await query.first()
+
+    if (!booking) {
+      session.flash('error', 'Booking not found. Please check your email and reference number.')
+      return response.redirect().back()
+    }
+
+    return response.redirect().toRoute('book.manage', {
+      slug: booking.business.slug,
       bookingId: booking.id,
     })
   }
@@ -541,45 +646,57 @@ export default class BookingController {
       return response.redirect().back()
     }
 
-    const newDate = request.input('date')
-    const newTime = request.input('time')
+    try {
+      const data = await request.validateUsing(rescheduleValidator)
+      const selectedDate = DateTime.fromISO(data.date)
 
-    if (!newDate || !newTime) {
-      session.flash('error', 'Please select a new date and time')
-      return response.redirect().back()
-    }
+      if (!selectedDate.isValid) {
+        session.flash('error', 'Invalid date format')
+        return response.redirect().back()
+      }
 
-    const selectedDate = DateTime.fromISO(newDate)
-    const [startHour, startMin] = newTime.split(':').map(Number)
-    const endMinutes = startHour * 60 + startMin + booking.service.durationMinutes
-    const endTime = `${Math.floor(endMinutes / 60).toString().padStart(2, '0')}:${(endMinutes % 60).toString().padStart(2, '0')}`
+      if (selectedDate < DateTime.now().startOf('day')) {
+        session.flash('error', 'Cannot reschedule to a past date')
+        return response.redirect().back()
+      }
 
-    const existingBooking = await Booking.query()
-      .where('businessId', booking.businessId)
-      .where('date', selectedDate.toISODate()!)
-      .whereNot('id', booking.id)
-      .whereNotIn('status', ['cancelled'])
-      .where((query) => {
-        query.where((q) => {
-          q.where('startTime', '<', endTime).where('endTime', '>', newTime)
+      const [startHour, startMin] = data.time.split(':').map(Number)
+      const endMinutes = startHour * 60 + startMin + booking.service.durationMinutes
+      const endTime = `${Math.floor(endMinutes / 60).toString().padStart(2, '0')}:${(endMinutes % 60).toString().padStart(2, '0')}`
+
+      const existingBooking = await Booking.query()
+        .where('businessId', booking.businessId)
+        .where('date', selectedDate.toISODate()!)
+        .whereNot('id', booking.id)
+        .whereNotIn('status', ['cancelled'])
+        .where((query) => {
+          query.where((q) => {
+            q.where('startTime', '<', endTime).where('endTime', '>', data.time)
+          })
         })
-      })
-      .first()
+        .first()
 
-    if (existingBooking) {
-      session.flash('error', 'This time slot is no longer available')
-      return response.redirect().back()
-    }
+      if (existingBooking) {
+        session.flash('error', 'This time slot is no longer available')
+        return response.redirect().back()
+      }
 
-    booking.date = selectedDate
-    booking.startTime = newTime
-    booking.endTime = endTime
-    await booking.save()
+      booking.date = selectedDate
+      booking.startTime = data.time
+      booking.endTime = endTime
+      await booking.save()
 
     session.flash('success', 'Booking rescheduled successfully')
-    return response.redirect().toRoute('book.manage', {
-      slug: params.slug,
-      bookingId: booking.id,
-    })
+      return response.redirect().toRoute('book.manage', {
+        slug: params.slug,
+        bookingId: booking.id,
+      })
+    } catch (error) {
+      if (error instanceof errors.E_VALIDATION_ERROR) {
+        session.flash('error', 'Please provide a valid date and time')
+        return response.redirect().back()
+      }
+      throw error
+    }
   }
 }

@@ -1,6 +1,6 @@
 @layout('layouts/app')
 
-@set('title', 'BookMe - Online Booking for Your Business')
+@set('title', 'FastAppoint - Online Booking for Your Business')
 
 @section('content')
   {{-- Hero Section --}}
@@ -21,7 +21,7 @@
             </a>
           @else
             <a href="{{ route('auth.signup.show') }}" class="px-8 py-4 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors text-lg">
-              Get Started Free
+              Start 7-Day Free Trial
             </a>
           @endif
           <a href="#how-it-works" class="px-8 py-4 border border-sand-7 text-sand-12 font-semibold rounded-lg hover:bg-sand-2 transition-colors text-lg">
@@ -29,7 +29,7 @@
           </a>
         </div>
         @if(!auth.isAuthenticated)
-          <p class="mt-4 text-sm text-sand-11">Free plan available • No credit card required</p>
+          <p class="mt-4 text-sm text-sand-11">7-day free trial • No credit card required • Cancel anytime</p>
         @endif
       </div>
     </div>
@@ -40,143 +40,34 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
       <div class="text-center">
         <h2 class="text-2xl font-bold text-sand-12 mb-2">Trusted by amazing businesses</h2>
-        <p class="text-sand-11">See workspaces that are thriving with BookMe</p>
+        <p class="text-sand-11">See workspaces that are thriving with FastAppoint</p>
       </div>
     </div>
 
     <div class="relative">
       <div class="carousel-container">
         <div class="carousel-track">
-          {{-- First set of images --}}
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&h=450&fit=crop&q=80" alt="Hair Salon" class="carousel-image" />
-            <div class="featured-badge">
-              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              Featured
-            </div>
-            <div class="carousel-overlay">
-              <span class="carousel-label">Luxe Hair Studio</span>
-            </div>
-          </div>
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&h=450&fit=crop&q=80" alt="Nail Salon" class="carousel-image" />
-            <div class="featured-badge">
-              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              Featured
-            </div>
-            <div class="carousel-overlay">
-              <span class="carousel-label">Polished Nails & Spa</span>
-            </div>
-          </div>
-          <a href="{{ auth.isAuthenticated ? route('featured.index') : route('auth.signup.show') }}" class="carousel-slide carousel-empty">
-            <div class="empty-slot-content">
-              <div class="empty-slot-icon">
-                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>
+          {{-- First set: Real featured businesses from database --}}
+          @each(featured in featuredBusinesses)
+            <a href="/book/{{ featured.business.slug }}" class="carousel-slide">
+              @if(featured.workspaceImage)
+                <img src="{{ featured.workspaceImage }}" alt="{{ featured.displayName || featured.business.name }}" class="carousel-image" />
+              @else
+                <div class="carousel-image bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center">
+                  <span class="text-4xl font-bold text-primary/60">{{ (featured.displayName || featured.business.name).charAt(0) }}</span>
+                </div>
+              @endif
+              <div class="featured-badge">
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                Featured
               </div>
-              <span class="empty-slot-text">Your business here</span>
-              <span class="empty-slot-cta">Click to get featured →</span>
-            </div>
-          </a>
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=600&h=450&fit=crop&q=80" alt="Photography Studio" class="carousel-image" />
-            <div class="featured-badge">
-              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              Featured
-            </div>
-            <div class="carousel-overlay">
-              <span class="carousel-label">Frame Perfect Studios</span>
-            </div>
-          </div>
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&h=450&fit=crop&q=80" alt="Spa" class="carousel-image" />
-            <div class="featured-badge">
-              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              Featured
-            </div>
-            <div class="carousel-overlay">
-              <span class="carousel-label">Serenity Wellness Spa</span>
-            </div>
-          </div>
-          <a href="{{ auth.isAuthenticated ? route('featured.index') : route('auth.signup.show') }}" class="carousel-slide carousel-empty">
-            <div class="empty-slot-content">
-              <div class="empty-slot-icon">
-                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>
+              <div class="carousel-overlay">
+                <span class="carousel-label">{{ featured.displayName || featured.business.name }}</span>
               </div>
-              <span class="empty-slot-text">Your business here</span>
-              <span class="empty-slot-cta">Click to get featured →</span>
-            </div>
-          </a>
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=450&fit=crop&q=80" alt="Fitness Studio" class="carousel-image" />
-            <div class="featured-badge">
-              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              Featured
-            </div>
-            <div class="carousel-overlay">
-              <span class="carousel-label">FitLife Personal Training</span>
-            </div>
-          </div>
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=600&h=450&fit=crop&q=80" alt="Barber Shop" class="carousel-image" />
-            <div class="featured-badge">
-              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              Featured
-            </div>
-            <div class="carousel-overlay">
-              <span class="carousel-label">Classic Cuts Barbershop</span>
-            </div>
-          </div>
-          <a href="{{ auth.isAuthenticated ? route('featured.index') : route('auth.signup.show') }}" class="carousel-slide carousel-empty">
-            <div class="empty-slot-content">
-              <div class="empty-slot-icon">
-                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>
-              </div>
-              <span class="empty-slot-text">Your business here</span>
-              <span class="empty-slot-cta">Click to get featured →</span>
-            </div>
-          </a>
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=600&h=450&fit=crop&q=80" alt="Makeup Studio" class="carousel-image" />
-            <div class="featured-badge">
-              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              Featured
-            </div>
-            <div class="carousel-overlay">
-              <span class="carousel-label">Glow Beauty Lounge</span>
-            </div>
-          </div>
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=600&h=450&fit=crop&q=80" alt="Massage Therapy" class="carousel-image" />
-            <div class="featured-badge">
-              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              Featured
-            </div>
-            <div class="carousel-overlay">
-              <span class="carousel-label">Healing Hands Massage</span>
-            </div>
-          </div>
+            </a>
+          @endeach
 
-          {{-- Duplicate set for seamless loop --}}
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&h=450&fit=crop&q=80" alt="Hair Salon" class="carousel-image" />
-            <div class="featured-badge">
-              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              Featured
-            </div>
-            <div class="carousel-overlay">
-              <span class="carousel-label">Luxe Hair Studio</span>
-            </div>
-          </div>
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&h=450&fit=crop&q=80" alt="Nail Salon" class="carousel-image" />
-            <div class="featured-badge">
-              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              Featured
-            </div>
-            <div class="carousel-overlay">
-              <span class="carousel-label">Polished Nails & Spa</span>
-            </div>
-          </div>
+          {{-- CTA slot --}}
           <a href="{{ auth.isAuthenticated ? route('featured.index') : route('auth.signup.show') }}" class="carousel-slide carousel-empty">
             <div class="empty-slot-content">
               <div class="empty-slot-icon">
@@ -186,26 +77,28 @@
               <span class="empty-slot-cta">Click to get featured →</span>
             </div>
           </a>
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=600&h=450&fit=crop&q=80" alt="Photography Studio" class="carousel-image" />
-            <div class="featured-badge">
-              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              Featured
-            </div>
-            <div class="carousel-overlay">
-              <span class="carousel-label">Frame Perfect Studios</span>
-            </div>
-          </div>
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&h=450&fit=crop&q=80" alt="Spa" class="carousel-image" />
-            <div class="featured-badge">
-              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              Featured
-            </div>
-            <div class="carousel-overlay">
-              <span class="carousel-label">Serenity Wellness Spa</span>
-            </div>
-          </div>
+
+          {{-- Duplicate set for seamless loop: Real featured businesses --}}
+          @each(featured in featuredBusinesses)
+            <a href="/book/{{ featured.business.slug }}" class="carousel-slide">
+              @if(featured.workspaceImage)
+                <img src="{{ featured.workspaceImage }}" alt="{{ featured.displayName || featured.business.name }}" class="carousel-image" />
+              @else
+                <div class="carousel-image bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center">
+                  <span class="text-4xl font-bold text-primary/60">{{ (featured.displayName || featured.business.name).charAt(0) }}</span>
+                </div>
+              @endif
+              <div class="featured-badge">
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                Featured
+              </div>
+              <div class="carousel-overlay">
+                <span class="carousel-label">{{ featured.displayName || featured.business.name }}</span>
+              </div>
+            </a>
+          @endeach
+
+          {{-- Duplicate CTA slot --}}
           <a href="{{ auth.isAuthenticated ? route('featured.index') : route('auth.signup.show') }}" class="carousel-slide carousel-empty">
             <div class="empty-slot-content">
               <div class="empty-slot-icon">
@@ -215,55 +108,6 @@
               <span class="empty-slot-cta">Click to get featured →</span>
             </div>
           </a>
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=450&fit=crop&q=80" alt="Fitness Studio" class="carousel-image" />
-            <div class="featured-badge">
-              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              Featured
-            </div>
-            <div class="carousel-overlay">
-              <span class="carousel-label">FitLife Personal Training</span>
-            </div>
-          </div>
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=600&h=450&fit=crop&q=80" alt="Barber Shop" class="carousel-image" />
-            <div class="featured-badge">
-              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              Featured
-            </div>
-            <div class="carousel-overlay">
-              <span class="carousel-label">Classic Cuts Barbershop</span>
-            </div>
-          </div>
-          <a href="{{ auth.isAuthenticated ? route('featured.index') : route('auth.signup.show') }}" class="carousel-slide carousel-empty">
-            <div class="empty-slot-content">
-              <div class="empty-slot-icon">
-                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>
-              </div>
-              <span class="empty-slot-text">Your business here</span>
-              <span class="empty-slot-cta">Click to get featured →</span>
-            </div>
-          </a>
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=600&h=450&fit=crop&q=80" alt="Makeup Studio" class="carousel-image" />
-            <div class="featured-badge">
-              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              Featured
-            </div>
-            <div class="carousel-overlay">
-              <span class="carousel-label">Glow Beauty Lounge</span>
-            </div>
-          </div>
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=600&h=450&fit=crop&q=80" alt="Massage Therapy" class="carousel-image" />
-            <div class="featured-badge">
-              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              Featured
-            </div>
-            <div class="carousel-overlay">
-              <span class="carousel-label">Healing Hands Massage</span>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -537,7 +381,7 @@
             </svg>
           </div>
           <h3 class="text-xl font-semibold text-sand-12 mb-2">Custom Booking Page</h3>
-          <p class="text-sand-11">Get your own branded booking page at yourbusiness.bookme.ng. Share it anywhere.</p>
+          <p class="text-sand-11">Get your own branded booking page at yourbusiness.{{ appDomain }}. Share it anywhere.</p>
         </div>
 
         <div class="text-center p-6">
@@ -909,6 +753,101 @@
     </script>
   </div>
 
+  {{-- Pricing Preview --}}
+  @if(!auth.isAuthenticated)
+    <div class="py-20 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl font-bold text-sand-12 mb-4">Simple, Transparent Pricing</h2>
+          <p class="text-lg text-sand-11">Start with a 7-day free trial. No credit card required.</p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-8">
+          <div class="bg-white border border-sand-7 rounded-xl p-6">
+            <h3 class="text-xl font-bold text-sand-12 mb-2">Starter</h3>
+            <div class="mb-4">
+              <span class="text-3xl font-bold text-sand-12">₦5,000</span>
+              <span class="text-sand-11">/month</span>
+            </div>
+            <ul class="space-y-2 text-sm text-sand-11 mb-6">
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Up to 3 staff
+              </li>
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Unlimited bookings
+              </li>
+            </ul>
+          </div>
+
+          <div class="bg-white border-2 border-primary rounded-xl p-6 ring-2 ring-primary/20">
+            <div class="text-center mb-2">
+              <span class="inline-block px-3 py-1 bg-primary text-white text-xs font-semibold rounded-full">Most Popular</span>
+            </div>
+            <h3 class="text-xl font-bold text-sand-12 mb-2">Pro</h3>
+            <div class="mb-4">
+              <span class="text-3xl font-bold text-sand-12">₦15,000</span>
+              <span class="text-sand-11">/month</span>
+            </div>
+            <ul class="space-y-2 text-sm text-sand-11 mb-6">
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Up to 10 staff
+              </li>
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                SMS notifications
+              </li>
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Analytics & Custom domain
+              </li>
+            </ul>
+          </div>
+
+          <div class="bg-white border border-sand-7 rounded-xl p-6">
+            <h3 class="text-xl font-bold text-sand-12 mb-2">Business</h3>
+            <div class="mb-4">
+              <span class="text-3xl font-bold text-sand-12">₦40,000</span>
+              <span class="text-sand-11">/month</span>
+            </div>
+            <ul class="space-y-2 text-sm text-sand-11 mb-6">
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Unlimited staff
+              </li>
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                API access & Priority support
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="text-center">
+          <a href="{{ route('subscriptions.index') }}" class="text-primary hover:underline font-medium">
+            View all plans and features →
+          </a>
+        </div>
+      </div>
+    </div>
+  @endif
+
   {{-- CTA --}}
   <div class="py-20 bg-primary">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -919,7 +858,7 @@
         @if(auth.isAuthenticated)
           Manage your appointments and grow your business with ease.
         @else
-          Join thousands of businesses already using BookMe to save time and grow.
+          Start your 7-day free trial today. No credit card required. Experience all features risk-free.
         @endif
       </p>
       @if(auth.isAuthenticated)
@@ -928,7 +867,7 @@
         </a>
       @else
         <a href="{{ route('auth.signup.show') }}" class="inline-block px-8 py-4 bg-white text-primary font-semibold rounded-lg hover:bg-sand-1 transition-colors text-lg">
-          Create Your Free Account
+          Start Your 7-Day Free Trial
         </a>
       @endif
     </div>

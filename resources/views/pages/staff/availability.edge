@@ -1,6 +1,6 @@
 @layout('layouts/app')
 
-@set('title', 'Staff Availability - BookMe')
+@set('title', 'Staff Availability - FastAppoint')
 
 @section('content')
   <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -39,19 +39,29 @@
 
             <div class="flex-1 flex items-center gap-3" x-show="enabled" x-cloak>
               <div class="flex items-center gap-2">
-                <input
-                  type="time"
-                  name="availabilities[{{ day.value }}][startTime]"
-                  value="{{ avail ? avail.startTime : '09:00' }}"
-                  class="px-3 py-2 border border-sand-7 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
-                />
+                <div class="relative">
+                  <input
+                    type="time"
+                    name="availabilities[{{ day.value }}][startTime]"
+                    value="{{ avail ? avail.startTime : '09:00' }}"
+                    class="px-3 py-2 pl-9 border border-sand-7 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm cursor-pointer"
+                  />
+                  <svg class="w-4 h-4 text-sand-9 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
                 <span class="text-sand-11">to</span>
-                <input
-                  type="time"
-                  name="availabilities[{{ day.value }}][endTime]"
-                  value="{{ avail ? avail.endTime : '17:00' }}"
-                  class="px-3 py-2 border border-sand-7 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
-                />
+                <div class="relative">
+                  <input
+                    type="time"
+                    name="availabilities[{{ day.value }}][endTime]"
+                    value="{{ avail ? avail.endTime : '17:00' }}"
+                    class="px-3 py-2 pl-9 border border-sand-7 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm cursor-pointer"
+                  />
+                  <svg class="w-4 h-4 text-sand-9 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
               </div>
             </div>
 

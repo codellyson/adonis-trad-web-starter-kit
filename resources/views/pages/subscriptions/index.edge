@@ -1,0 +1,130 @@
+@layout('layouts/app')
+
+@set('title', 'Pricing - FastAppoint')
+
+@section('content')
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-sand-12 mb-4">Simple, Transparent Pricing</h1>
+      <p class="text-xl text-sand-11">Choose the perfect plan for your business</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+      @each(plan in plans)
+        <div class="bg-white border border-sand-7 rounded-xl p-6 {{ plan.name === 'starter' ? 'ring-2 ring-primary' : '' }}">
+          @if(plan.name === 'starter')
+            <div class="text-center mb-4">
+              <span class="inline-block px-3 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-full">Most Popular</span>
+            </div>
+          @endif
+
+          <div class="text-center mb-6">
+            <h3 class="text-2xl font-bold text-sand-12 mb-2">{{ plan.displayName }}</h3>
+            <div class="mb-4">
+              <span class="text-4xl font-bold text-sand-12">{{ plan.formattedPrice }}</span>
+              @if(plan.price > 0)
+                <span class="text-sand-11">/month</span>
+              @endif
+            </div>
+            @if(plan.description)
+              <p class="text-sm text-sand-11">{{ plan.description }}</p>
+            @endif
+          </div>
+
+          <div class="space-y-3 mb-6">
+            <div class="flex items-start gap-2">
+              <svg class="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span class="text-sm text-sand-12">
+                @if(plan.isUnlimitedStaff)
+                  Unlimited staff
+                @else
+                  Up to {{ plan.maxStaff }} staff
+                @endif
+              </span>
+            </div>
+            <div class="flex items-start gap-2">
+              <svg class="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span class="text-sm text-sand-12">
+                @if(plan.isUnlimitedBookings)
+                  Unlimited bookings
+                @else
+                  {{ plan.maxBookingsPerMonth }} bookings/month
+                @endif
+              </span>
+            </div>
+            @if(plan.features)
+              @each(feature in plan.features)
+                <div class="flex items-start gap-2">
+                  <svg class="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                  <span class="text-sm text-sand-12">
+                    @if(feature === 'basic_booking_page')
+                      Basic booking page
+                    @elseif(feature === 'email_notifications')
+                      Email notifications
+                    @elseif(feature === 'sms_notifications')
+                      SMS notifications
+                    @elseif(feature === 'unlimited_bookings')
+                      Unlimited bookings
+                    @elseif(feature === 'unlimited_staff')
+                      Unlimited staff
+                    @elseif(feature === 'analytics')
+                      Analytics dashboard
+                    @elseif(feature === 'custom_domain')
+                      Custom domain
+                    @elseif(feature === 'api_access')
+                      API access
+                    @elseif(feature === 'priority_support')
+                      Priority support
+                    @else
+                      {{ feature }}
+                    @endif
+                  </span>
+                </div>
+              @endeach
+            @endif
+          </div>
+
+          @if(auth.isAuthenticated)
+            <a
+              href="{{ route('subscriptions.select') }}"
+              class="block w-full py-2.5 text-center font-medium rounded-lg transition-colors {{ plan.name === 'starter' ? 'bg-primary text-white hover:bg-primary/90' : 'border border-sand-7 text-sand-12 hover:bg-sand-2' }}"
+            >
+              @if(plan.price === 0)
+                Get Started
+              @else
+                Choose Plan
+              @endif
+            </a>
+          @else
+            <a
+              href="{{ route('auth.signup.show') }}"
+              class="block w-full py-2.5 text-center font-medium rounded-lg transition-colors {{ plan.name === 'starter' ? 'bg-primary text-white hover:bg-primary/90' : 'border border-sand-7 text-sand-12 hover:bg-sand-2' }}"
+            >
+              Get Started
+            </a>
+          @endif
+        </div>
+      @endeach
+    </div>
+
+    <div class="mt-12 text-center">
+      <p class="text-sand-11 mb-4">All plans include a 2-3% transaction fee on payments</p>
+      @if(auth.isAuthenticated)
+        <a href="{{ route('subscriptions.manage') }}" class="text-primary hover:underline font-medium">
+          Manage your subscription →
+        </a>
+      @else
+        <a href="{{ route('auth.signup.show') }}" class="text-primary hover:underline font-medium">
+          Start your free trial →
+        </a>
+      @endif
+    </div>
+  </div>
+@endsection
+

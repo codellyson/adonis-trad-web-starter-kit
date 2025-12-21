@@ -192,10 +192,15 @@
     </div>
 
     {{-- Footer --}}
-    <div class="mt-8 text-center text-sm text-sand-10">
-      <a href="/book/{{ booking.business.slug }}" class="text-primary hover:underline">Book another appointment</a>
-      <span class="mx-2">•</span>
-      Powered by <a href="/" class="text-primary hover:underline">BookMe</a>
+    <div class="mt-8 text-center text-sm text-sand-10 space-y-2">
+      <div>
+        <a href="{{ route('book.find') }}" class="text-primary hover:underline">Find Another Booking</a>
+        <span class="mx-2">•</span>
+        <a href="/book/{{ booking.business.slug }}" class="text-primary hover:underline">Book another appointment</a>
+      </div>
+      <div>
+        Powered by <a href="/" class="text-primary hover:underline">FastAppoint</a>
+      </div>
     </div>
   </div>
 </body>

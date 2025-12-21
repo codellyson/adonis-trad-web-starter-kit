@@ -1,4 +1,4 @@
-# BookMe - Multi-tenant Booking Platform
+# FastAppoint - Multi-tenant Booking Platform
 
 ## Vision
 A booking platform where businesses create personalized booking experiences for their customers. The platform facilitates, the business controls.
@@ -32,7 +32,7 @@ A booking platform where businesses create personalized booking experiences for 
 
 ### For Businesses
 - [ ] Signup & onboarding wizard
-- [ ] Custom booking page (subdomain: `business.bookme.ng`)
+- [ ] Custom booking page (subdomain: `business.fastappoint.com`)
 - [ ] Service management (name, duration, price, description)
 - [ ] Staff management (add staff, assign services)
 - [ ] Availability calendar (weekly schedule per staff)
@@ -122,11 +122,11 @@ Payment records
 - **SMS:** Termii
 
 ### Subdomain Routing
-- Wildcard DNS: `*.bookme.ng` → app server
+- Wildcard DNS: `*.fastappoint.com` → app server
 - Middleware extracts subdomain → loads business context
-- `api.bookme.ng` - API endpoints
-- `app.bookme.ng` - Business dashboard
-- `{slug}.bookme.ng` - Public booking pages
+- `api.fastappoint.com` - API endpoints
+- `app.fastappoint.com` - Business dashboard
+- `{slug}.fastappoint.com` - Public booking pages
 
 ### Multi-tenancy
 - Single database with `business_id` foreign key on all tenant tables
@@ -144,7 +144,7 @@ Payment records
 6. Go live!
 
 ### Customer Booking
-1. Visit `salon.bookme.ng`
+1. Visit `salon.fastappoint.com`
 2. Browse services
 3. Select service
 4. Choose staff (or "first available")

@@ -63,6 +63,12 @@ export default class Booking extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 
+  @column.dateTime()
+  declare reminder24hSentAt: DateTime | null
+
+  @column.dateTime()
+  declare reminder1hSentAt: DateTime | null
+
   @belongsTo(() => Business)
   declare business: BelongsTo<typeof Business>
 

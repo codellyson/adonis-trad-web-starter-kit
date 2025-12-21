@@ -1,25 +1,25 @@
 @layout('layouts/app')
 
-@set('title', 'Sign Up - BookMe')
+@set('title', 'Sign Up - FastAppoint')
 
 @section('content')
   <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
-      <div class="text-center">
-        <h2 class="text-3xl font-bold text-sand-12">Create your booking page</h2>
+    <div class="max-w-md w-full">
+      <div class="text-center mb-8">
+        <h2 class="text-2xl font-bold text-sand-12">Get started in 2 minutes</h2>
         <p class="mt-2 text-sm text-sand-11">
-          Set up your business and start accepting bookings in minutes
+          Create your account and start accepting bookings
         </p>
       </div>
 
       @if(flashMessages.has('error'))
-        <div class="bg-error/10 border border-error text-error rounded-lg p-4 text-sm">
+        <div class="mb-6 bg-error/10 border border-error text-error rounded-lg p-4 text-sm">
           {{ flashMessages.get('error') }}
         </div>
       @endif
 
       @if(flashMessages.has('errors'))
-        <div class="bg-error/10 border border-error text-error rounded-lg p-4 text-sm">
+        <div class="mb-6 bg-error/10 border border-error text-error rounded-lg p-4 text-sm">
           <ul class="list-disc list-inside">
             @each(err in flashMessages.get('errors'))
               <li>{{ err.message }}</li>
@@ -29,7 +29,7 @@
       @endif
 
       <form
-        class="mt-8 space-y-6"
+        class="bg-white border border-sand-7 rounded-xl p-6 space-y-5"
         method="POST"
         action="{{ route('auth.signup') }}"
         x-data="{ loading: false }"
@@ -37,145 +37,128 @@
       >
         {{ csrfField() }}
 
-        <div class="bg-white border border-sand-7 rounded-xl p-6 space-y-4">
-          <h3 class="font-semibold text-sand-12 border-b border-sand-6 pb-3 mb-4">About You</h3>
-
-          <div>
-            <label for="fullName" class="block text-sm font-medium text-sand-12 mb-2">
-              Full Name
-            </label>
-            <input
-              id="fullName"
-              name="fullName"
-              type="text"
-              required
-              value="{{ flashMessages.get('fullName') || '' }}"
-              class="appearance-none relative block w-full px-4 py-3 border border-sand-7 rounded-lg placeholder-sand-9 text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="John Doe"
-            />
-            @error('fullName')
-              <p class="mt-1 text-sm text-error">{{ $message }}</p>
-            @enderror
-          </div>
-
-          <div>
-            <label for="email" class="block text-sm font-medium text-sand-12 mb-2">
-              Email Address
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              autocomplete="email"
-              class="appearance-none relative block w-full px-4 py-3 border border-sand-7 rounded-lg placeholder-sand-9 text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="john@example.com"
-            />
-            @error('email')
-              <p class="mt-1 text-sm text-error">{{ $message }}</p>
-            @enderror
-          </div>
-
-          <div>
-            <label for="phone" class="block text-sm font-medium text-sand-12 mb-2">
-              Phone Number <span class="text-sand-9">(optional)</span>
-            </label>
-            <input
-              id="phone"
-              name="phone"
-              type="tel"
-              class="appearance-none relative block w-full px-4 py-3 border border-sand-7 rounded-lg placeholder-sand-9 text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="+234 800 000 0000"
-            />
-          </div>
-
-          <div>
-            <label for="password" class="block text-sm font-medium text-sand-12 mb-2">
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              autocomplete="new-password"
-              class="appearance-none relative block w-full px-4 py-3 border border-sand-7 rounded-lg placeholder-sand-9 text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="Min. 8 characters"
-            />
-            @error('password')
-              <p class="mt-1 text-sm text-error">{{ $message }}</p>
-            @enderror
-          </div>
-        </div>
-
-        <div class="bg-white border border-sand-7 rounded-xl p-6 space-y-4">
-          <h3 class="font-semibold text-sand-12 border-b border-sand-6 pb-3 mb-4">About Your Business</h3>
-
-          <div>
-            <label for="businessName" class="block text-sm font-medium text-sand-12 mb-2">
-              Business Name
-            </label>
-            <input
-              id="businessName"
-              name="businessName"
-              type="text"
-              required
-              class="appearance-none relative block w-full px-4 py-3 border border-sand-7 rounded-lg placeholder-sand-9 text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="Glow Beauty Salon"
-            />
-            @error('businessName')
-              <p class="mt-1 text-sm text-error">{{ $message }}</p>
-            @enderror
-          </div>
-
-          <div>
-            <label for="category" class="block text-sm font-medium text-sand-12 mb-2">
-              Category
-            </label>
-            <select
-              id="category"
-              name="category"
-              required
-              class="appearance-none relative block w-full px-4 py-3 border border-sand-7 rounded-lg text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
-            >
-              <option value="">Select a category</option>
-              <option value="beauty">💇 Beauty & Wellness</option>
-              <option value="media">📸 Photography & Media</option>
-              <option value="health">🏥 Health & Medical</option>
-              <option value="fitness">💪 Fitness & Sports</option>
-              <option value="education">📚 Education & Coaching</option>
-              <option value="other">🏢 Other Services</option>
-            </select>
-            @error('category')
-              <p class="mt-1 text-sm text-error">{{ $message }}</p>
-            @enderror
-          </div>
+        <div>
+          <label for="fullName" class="block text-sm font-medium text-sand-12 mb-1.5">
+            Your Name
+          </label>
+          <input
+            id="fullName"
+            name="fullName"
+            type="text"
+            required
+            value="{{ flashMessages.get('fullName') || '' }}"
+            class="w-full px-4 py-2.5 border border-sand-7 rounded-lg placeholder-sand-9 text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            placeholder="John Doe"
+          />
+          @error('fullName')
+            <p class="mt-1 text-sm text-error">{{ $message }}</p>
+          @enderror
         </div>
 
         <div>
-          <button
-            type="submit"
-            :disabled="loading"
-            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span x-show="!loading">Create Account</span>
-            <span x-show="loading" class="flex items-center gap-2">
-              <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Creating...
-            </span>
-          </button>
+          <label for="email" class="block text-sm font-medium text-sand-12 mb-1.5">
+            Email
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            autocomplete="email"
+            class="w-full px-4 py-2.5 border border-sand-7 rounded-lg placeholder-sand-9 text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            placeholder="john@example.com"
+          />
+          @error('email')
+            <p class="mt-1 text-sm text-error">{{ $message }}</p>
+          @enderror
         </div>
 
-        <p class="text-center text-sm text-sand-11">
-          Already have an account?
-          <a href="{{ route('auth.login.show') }}" class="font-medium text-primary hover:text-primary/80">
-            Sign in
-          </a>
-        </p>
+        <div>
+          <label for="password" class="block text-sm font-medium text-sand-12 mb-1.5">
+            Password
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+            autocomplete="new-password"
+            class="w-full px-4 py-2.5 border border-sand-7 rounded-lg placeholder-sand-9 text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            placeholder="At least 8 characters"
+          />
+          @error('password')
+            <p class="mt-1 text-sm text-error">{{ $message }}</p>
+          @enderror
+        </div>
+
+        <div class="border-t border-sand-6 pt-5">
+          <p class="text-xs font-medium text-sand-11 uppercase tracking-wider mb-4">Your Business</p>
+          
+          <div class="space-y-5">
+            <div>
+              <label for="businessName" class="block text-sm font-medium text-sand-12 mb-1.5">
+                Business Name
+              </label>
+              <input
+                id="businessName"
+                name="businessName"
+                type="text"
+                required
+                class="w-full px-4 py-2.5 border border-sand-7 rounded-lg placeholder-sand-9 text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                placeholder="Glow Beauty Salon"
+              />
+              @error('businessName')
+                <p class="mt-1 text-sm text-error">{{ $message }}</p>
+              @enderror
+            </div>
+
+            <div>
+              <label for="category" class="block text-sm font-medium text-sand-12 mb-1.5">
+                Category
+              </label>
+              <select
+                id="category"
+                name="category"
+                required
+                class="w-full px-4 py-2.5 border border-sand-7 rounded-lg text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
+              >
+                <option value="">Choose a category</option>
+                <option value="beauty">💇 Beauty & Wellness</option>
+                <option value="media">📸 Photography & Media</option>
+                <option value="health">🏥 Health & Medical</option>
+                <option value="fitness">💪 Fitness & Sports</option>
+                <option value="education">📚 Education & Coaching</option>
+                <option value="other">🏢 Other Services</option>
+              </select>
+              @error('category')
+                <p class="mt-1 text-sm text-error">{{ $message }}</p>
+              @enderror
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          :disabled="loading"
+          class="w-full py-3 px-4 text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <span x-show="!loading">Create Account</span>
+          <span x-show="loading" class="flex items-center justify-center gap-2">
+            <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Creating...
+          </span>
+        </button>
       </form>
+
+      <p class="mt-6 text-center text-sm text-sand-11">
+        Already have an account?
+        <a href="{{ route('auth.login.show') }}" class="font-medium text-primary hover:text-primary/80">
+          Sign in
+        </a>
+      </p>
     </div>
   </div>
 @endsection

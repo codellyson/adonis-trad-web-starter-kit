@@ -1,6 +1,6 @@
 @layout('layouts/app')
 
-@set('title', 'Setup Your Booking Page - BookMe')
+@set('title', 'Setup Your Booking Page - FastAppoint')
 
 @section('content')
   <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -310,9 +310,9 @@
 
           <div class="bg-sand-2 rounded-lg p-4 mb-6" x-data="{ copied: false }">
             <div class="flex items-center justify-center gap-3">
-              <code class="text-lg font-mono text-primary">{{ business.slug }}.bookme.ng</code>
+              <code class="text-lg font-mono text-primary">{{ bookingUrl(business.slug).replace('http://', '').replace('https://', '') }}</code>
               <button
-                @click="navigator.clipboard.writeText('https://{{ business.slug }}.bookme.ng'); copied = true; setTimeout(() => copied = false, 2000)"
+                @click="navigator.clipboard.writeText('{{ bookingUrl(business.slug) }}'); copied = true; setTimeout(() => copied = false, 2000)"
                 class="p-2 hover:bg-sand-4 rounded-lg transition-colors"
               >
                 <svg x-show="!copied" class="w-5 h-5 text-sand-11" fill="none" stroke="currentColor" viewBox="0 0 24 24">

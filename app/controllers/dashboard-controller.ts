@@ -58,6 +58,25 @@ export default class DashboardController {
       servicesCount: business.services.length,
     }
 
-    return view.render('pages/dashboard', { business, stats, upcomingBookings })
+    // Get subscription/trial info
+    const subscription = await business.getCurrentSubscription()
+    let trialDaysRemaining = 0
+    let trialExpired = false
+    
+    if (subscription?.status === 'trialing' && subscription.trialEndsAt) {
+      trialExpired = subscription.trialEndsAt < DateTime.now()
+      if (!trialExpired) {
+        trialDaysRemaining = Math.ceil(subscription.trialEndsAt.diffNow('days').days)
+      }
+    }
+
+    return view.render('pages/dashboard', { 
+      business, 
+      stats, 
+      upcomingBookings,
+      subscription,
+      trialDaysRemaining,
+      trialExpired,
+    })
   }
 }

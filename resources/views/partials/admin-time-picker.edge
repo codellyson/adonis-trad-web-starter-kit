@@ -1,0 +1,131 @@
+{{--
+  Admin Time Picker Component
+  Usage: @set('pickerName', 'startTime') @set('pickerLabel', 'Start Time') @set('pickerValue', '09:00') @set('pickerRequired', true) @include('partials/admin-time-picker')
+--}}
+<div
+  x-data="{
+    open: false,
+    value: '{{ pickerValue || '' }}',
+    filter: 'all',
+    
+    get timeSlots() {
+      const slots = []
+      for (let h = 0; h < 24; h++) {
+        for (let m = 0; m < 60; m += 30) {
+          const time = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0')
+          const hour = h
+          let period = 'morning'
+          if (hour >= 12 && hour < 17) period = 'afternoon'
+          else if (hour >= 17) period = 'evening'
+          slots.push({ time, period })
+        }
+      }
+      return slots
+    },
+    
+    get filteredSlots() {
+      if (this.filter === 'all') return this.timeSlots
+      return this.timeSlots.filter(s => s.period === this.filter)
+    },
+    
+    get displayValue() {
+      if (!this.value) return ''
+      const [h, m] = this.value.split(':')
+      const hour = parseInt(h)
+      const ampm = hour >= 12 ? 'PM' : 'AM'
+      const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
+      return hour12 + ':' + m + ' ' + ampm
+    },
+    
+    formatTime(time) {
+      const [h, m] = time.split(':')
+      const hour = parseInt(h)
+      const ampm = hour >= 12 ? 'PM' : 'AM'
+      const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
+      return hour12 + ':' + m + ' ' + ampm
+    },
+    
+    selectTime(time) {
+      this.value = time
+      this.open = false
+    }
+  }"
+  class="relative"
+>
+  <label for="{{ pickerName }}" class="block text-sm font-medium text-sand-12 mb-1">
+    {{ pickerLabel }}@if(pickerRequired) *@endif
+  </label>
+  
+  <input type="hidden" name="{{ pickerName }}" :value="value" />
+  
+  <button
+    type="button"
+    @click="open = !open"
+    class="w-full px-4 py-2.5 pl-10 border rounded-lg text-left bg-white transition-all flex items-center justify-between"
+    :class="open ? 'border-primary ring-2 ring-primary/20' : 'border-sand-7 hover:border-sand-8'"
+  >
+    <span :class="value ? 'text-sand-12' : 'text-sand-9'" x-text="displayValue || 'Select time'"></span>
+    <svg class="w-4 h-4 text-sand-9 transition-transform" :class="open && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+    </svg>
+  </button>
+  
+  <svg class="w-5 h-5 text-sand-9 absolute left-3 top-[38px] pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+  </svg>
+  
+  <div
+    x-show="open"
+    x-cloak
+    @click.away="open = false"
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0 -translate-y-2"
+    x-transition:enter-end="opacity-100 translate-y-0"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    class="absolute z-50 mt-2 w-full bg-white border border-sand-6 rounded-xl shadow-xl overflow-hidden"
+  >
+    <div class="p-3 border-b border-sand-4">
+      <div class="flex gap-2">
+        <button 
+          type="button" 
+          @click="filter = 'all'" 
+          :class="filter === 'all' ? 'bg-primary text-white' : 'bg-sand-3 text-sand-11 hover:bg-sand-4'" 
+          class="px-3 py-1.5 text-xs font-medium rounded-full transition-colors"
+        >All</button>
+        <button 
+          type="button" 
+          @click="filter = 'morning'" 
+          :class="filter === 'morning' ? 'bg-primary text-white' : 'bg-sand-3 text-sand-11 hover:bg-sand-4'" 
+          class="px-3 py-1.5 text-xs font-medium rounded-full transition-colors flex items-center gap-1"
+        >🌅 AM</button>
+        <button 
+          type="button" 
+          @click="filter = 'afternoon'" 
+          :class="filter === 'afternoon' ? 'bg-primary text-white' : 'bg-sand-3 text-sand-11 hover:bg-sand-4'" 
+          class="px-3 py-1.5 text-xs font-medium rounded-full transition-colors flex items-center gap-1"
+        >☀️ Noon</button>
+        <button 
+          type="button" 
+          @click="filter = 'evening'" 
+          :class="filter === 'evening' ? 'bg-primary text-white' : 'bg-sand-3 text-sand-11 hover:bg-sand-4'" 
+          class="px-3 py-1.5 text-xs font-medium rounded-full transition-colors flex items-center gap-1"
+        >🌙 PM</button>
+      </div>
+    </div>
+    
+    <div class="max-h-60 overflow-y-auto p-2 grid grid-cols-3 gap-1.5" style="scrollbar-width: thin;">
+      <template x-for="slot in filteredSlots" :key="slot.time">
+        <button
+          type="button"
+          @click="selectTime(slot.time)"
+          :class="value === slot.time ? 'bg-primary text-white font-semibold ring-2 ring-primary ring-offset-1' : 'hover:bg-sand-3 text-sand-12'"
+          class="px-2 py-2 text-sm rounded-lg transition-colors text-center"
+          x-text="formatTime(slot.time)"
+        ></button>
+      </template>
+    </div>
+  </div>
+</div>
+

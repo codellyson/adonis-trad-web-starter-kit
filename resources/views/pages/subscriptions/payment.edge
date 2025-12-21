@@ -1,0 +1,76 @@
+@layout('layouts/app')
+
+@set('title', 'Subscribe - FastAppoint')
+
+@section('content')
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="mb-8 text-center">
+      <h1 class="text-2xl font-bold text-sand-12">Complete Your Subscription</h1>
+      <p class="text-sand-11 mt-1">Subscribe to {{ plan.displayName }} plan</p>
+    </div>
+
+    <div class="bg-white border border-sand-7 rounded-xl p-6 mb-6">
+      <div class="flex items-center justify-between mb-4 pb-4 border-b border-sand-6">
+        <div>
+          <h3 class="font-semibold text-sand-12">{{ plan.displayName }}</h3>
+          <p class="text-sm text-sand-11">{{ plan.description }}</p>
+        </div>
+        <div class="text-right">
+          <p class="text-2xl font-bold text-primary">{{ plan.formattedPrice }}</p>
+          <p class="text-sm text-sand-10">per month</p>
+        </div>
+      </div>
+
+      <div class="space-y-2 text-sm">
+        <div class="flex justify-between">
+          <span class="text-sand-11">Plan price</span>
+          <span class="text-sand-12">{{ plan.formattedPrice }}/month</span>
+        </div>
+        <div class="flex justify-between pt-2 border-t border-sand-6">
+          <span class="font-semibold text-sand-12">Total</span>
+          <span class="font-bold text-primary text-lg">{{ plan.formattedPrice }}/month</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white border border-sand-7 rounded-xl p-6">
+      <h3 class="font-semibold text-sand-12 mb-4">Payment Details</h3>
+      <p class="text-sm text-sand-11 mb-6">
+        You'll be charged {{ plan.formattedPrice }} monthly. You can cancel anytime.
+      </p>
+
+      <button
+        onclick="payWithPaystack()"
+        class="w-full py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90"
+      >
+        Subscribe Now
+      </button>
+    </div>
+  </div>
+
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+  <script>
+    function payWithPaystack() {
+      const handler = PaystackPop.setup({
+        key: '{{ paystackPublicKey }}',
+        email: '{{ business.email }}',
+        amount: {{ plan.price }},
+        currency: 'NGN',
+        ref: 'SUB-' + Date.now(),
+        metadata: {
+          business_id: {{ business.id }},
+          plan_id: {{ plan.id }},
+          plan_name: '{{ plan.name }}',
+        },
+        callback: function(response) {
+          window.location.href = '/subscriptions/{{ plan.id }}/verify?reference=' + response.reference;
+        },
+        onClose: function() {
+          console.log('Payment window closed');
+        }
+      });
+      handler.openIframe();
+    }
+  </script>
+@endsection
+

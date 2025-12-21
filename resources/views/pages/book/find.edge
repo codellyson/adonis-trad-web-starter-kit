@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find My Booking - FastAppoint</title>
+  <link rel="preconnect" href="https://fonts.bunny.net" />
+  <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --sand-1: #fdfdfc;
+      --sand-2: #f9f9f8;
+      --sand-3: #f1f0ef;
+      --sand-4: #e9e8e6;
+      --sand-5: #e2e1de;
+      --sand-6: #dad9d6;
+      --sand-7: #cfceca;
+      --sand-8: #bcbbb5;
+      --sand-9: #8d8d86;
+      --sand-10: #82827c;
+      --sand-11: #63635e;
+      --sand-12: #21201c;
+      --success: #10b981;
+      --error: #ef4444;
+      --warning: #f59e0b;
+      --primary: #5A45FF;
+    }
+  </style>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Instrument Sans", "sans-serif"]
+          },
+          colors: {
+            primary: {
+              DEFAULT: "#5A45FF",
+              lighter: "#a599ff"
+            },
+            sand: {
+              1: "var(--sand-1)",
+              2: "var(--sand-2)",
+              3: "var(--sand-3)",
+              4: "var(--sand-4)",
+              5: "var(--sand-5)",
+              6: "var(--sand-6)",
+              7: "var(--sand-7)",
+              8: "var(--sand-8)",
+              9: "var(--sand-9)",
+              10: "var(--sand-10)",
+              11: "var(--sand-11)",
+              12: "var(--sand-12)"
+            },
+            success: "var(--success)",
+            error: "var(--error)",
+            warning: "var(--warning)"
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-sand-2 text-sand-12 min-h-screen font-sans">
+  <div class="max-w-md mx-auto px-4 py-12">
+    {{-- Header --}}
+    <div class="text-center mb-8">
+      <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+      </div>
+      <h1 class="text-2xl font-bold text-sand-12">Find My Booking</h1>
+      <p class="text-sand-11 mt-2">Enter your email and booking reference to manage your appointment</p>
+    </div>
+
+    {{-- Flash Messages --}}
+    @if(flashMessages.has('error'))
+      <div class="mb-6 bg-error/10 border border-error text-error rounded-lg p-4 text-sm">
+        {{ flashMessages.get('error') }}
+      </div>
+    @endif
+
+    @if(flashMessages.has('success'))
+      <div class="mb-6 bg-success/10 border border-success text-success rounded-lg p-4 text-sm">
+        {{ flashMessages.get('success') }}
+      </div>
+    @endif
+
+    {{-- Form --}}
+    <div class="bg-white border border-sand-7 rounded-xl p-6">
+      <form method="POST" action="{{ route('book.lookup') }}">
+        {{ csrfField() }}
+
+        <div class="space-y-4">
+          <div>
+            <label for="email" class="block text-sm font-medium text-sand-12 mb-2">
+              Email Address *
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              value="{{ old('email') || '' }}"
+              placeholder="your@email.com"
+              class="w-full px-4 py-3 border border-sand-7 rounded-lg text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            />
+            <p class="text-xs text-sand-10 mt-1">The email you used when booking</p>
+          </div>
+
+          <div>
+            <label for="reference" class="block text-sm font-medium text-sand-12 mb-2">
+              Booking Reference *
+            </label>
+            <input
+              type="text"
+              id="reference"
+              name="reference"
+              required
+              value="{{ old('reference') || '' }}"
+              placeholder="ABC12345"
+              class="w-full px-4 py-3 border border-sand-7 rounded-lg text-sand-12 font-mono focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary uppercase"
+              style="text-transform: uppercase;"
+            />
+            <p class="text-xs text-sand-10 mt-1">Found in your confirmation email (first 8 characters)</p>
+          </div>
+
+          <div>
+            <label for="businessSlug" class="block text-sm font-medium text-sand-12 mb-2">
+              Business (Optional)
+            </label>
+            <input
+              type="text"
+              id="businessSlug"
+              name="businessSlug"
+              value="{{ old('businessSlug') || '' }}"
+              placeholder="business-name"
+              class="w-full px-4 py-3 border border-sand-7 rounded-lg text-sand-12 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            />
+            <p class="text-xs text-sand-10 mt-1">Leave empty to search all businesses</p>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          class="w-full mt-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors"
+        >
+          Find My Booking
+        </button>
+      </form>
+    </div>
+
+    {{-- Help Text --}}
+    <div class="mt-6 bg-sand-3 rounded-lg p-4">
+      <p class="text-sm text-sand-11">
+        <strong class="text-sand-12">Can't find your booking reference?</strong><br/>
+        Check your confirmation email. The reference is usually 8 characters long (e.g., ABC12345).
+        If you still can't find it, contact the business directly.
+      </p>
+    </div>
+
+    {{-- Footer --}}
+    <div class="mt-8 text-center text-sm text-sand-10">
+      <a href="/" class="text-primary hover:underline">← Back to Home</a>
+      <span class="mx-2">•</span>
+      Powered by <a href="/" class="text-primary hover:underline">FastAppoint</a>
+    </div>
+  </div>
+</body>
+</html>
+
