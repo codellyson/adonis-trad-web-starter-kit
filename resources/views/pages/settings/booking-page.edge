@@ -76,6 +76,56 @@
       </div>
 
       <div class="border-t border-sand-6 pt-6">
+        <h3 class="font-medium text-sand-12 mb-4">Embed on Your Website</h3>
+        <p class="text-sm text-sand-11 mb-4">Add the booking widget to your website using one of these methods:</p>
+
+        <div class="space-y-4">
+          {{-- JavaScript Widget Embed --}}
+          <div>
+            <label class="block text-sm font-medium text-sand-12 mb-2">JavaScript Widget (Recommended)</label>
+            <div class="relative" x-data="{ copied: false }">
+              <textarea
+                readonly
+                rows="3"
+                class="w-full px-4 py-3 border border-sand-7 rounded-lg bg-sand-2 text-sand-12 font-mono text-xs resize-none"
+              ><div id="fastappoint-widget"></div>
+<script src="{{ appUrl() }}/embed.js" data-slug="{{ business.slug }}"></script></textarea>
+              <button
+                type="button"
+                @click="navigator.clipboard.writeText('<div id=\"fastappoint-widget\"></div>\n<script src=\"{{ appUrl() }}/embed.js\" data-slug=\"{{ business.slug }}\"><\/script>'); copied = true; setTimeout(() => copied = false, 2000)"
+                class="absolute top-2 right-2 px-3 py-1.5 border border-sand-7 rounded-lg hover:bg-sand-3 text-sand-12 font-medium text-sm bg-white"
+              >
+                <span x-show="!copied">Copy</span>
+                <span x-show="copied" class="text-success">Copied!</span>
+              </button>
+            </div>
+            <p class="text-xs text-sand-11 mt-2">Paste this code anywhere on your website where you want the booking widget to appear</p>
+          </div>
+
+          {{-- Iframe Embed --}}
+          <div>
+            <label class="block text-sm font-medium text-sand-12 mb-2">Iframe Embed</label>
+            <div class="relative" x-data="{ copied: false }">
+              <textarea
+                readonly
+                rows="2"
+                class="w-full px-4 py-3 border border-sand-7 rounded-lg bg-sand-2 text-sand-12 font-mono text-xs resize-none"
+              ><iframe src="{{ appUrl() }}/book/{{ business.slug }}/embed" width="100%" height="800" frameborder="0" scrolling="no"></iframe></textarea>
+              <button
+                type="button"
+                @click="navigator.clipboard.writeText('<iframe src=\"{{ appUrl() }}/book/{{ business.slug }}/embed\" width=\"100%\" height=\"800\" frameborder=\"0\" scrolling=\"no\"><\/iframe>'); copied = true; setTimeout(() => copied = false, 2000)"
+                class="absolute top-2 right-2 px-3 py-1.5 border border-sand-7 rounded-lg hover:bg-sand-3 text-sand-12 font-medium text-sm bg-white"
+              >
+                <span x-show="!copied">Copy</span>
+                <span x-show="copied" class="text-success">Copied!</span>
+              </button>
+            </div>
+            <p class="text-xs text-sand-11 mt-2">Use this if you prefer an iframe embed. Adjust width and height as needed</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-sand-6 pt-6">
         <a
           href="/book/{{ business.slug }}"
           target="_blank"

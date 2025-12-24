@@ -199,6 +199,7 @@ router
 router
   .group(() => {
     router.get('/:slug', [BookingController, 'show']).as('book.show')
+    router.get('/:slug/embed', [BookingController, 'embed']).as('book.embed')
     router
       .get('/:slug/service/:serviceId/slots', [BookingController, 'getTimeSlots'])
       .as('book.slots')

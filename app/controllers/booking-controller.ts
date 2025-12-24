@@ -57,6 +57,15 @@ export default class BookingController {
     const dateStr = request.qs().date
     const staffId = request.qs().staffId
 
+    // Add CORS headers for embed widget
+    const origin = request.header('origin')
+    if (origin) {
+      response.header('Access-Control-Allow-Origin', origin)
+      response.header('Access-Control-Allow-Credentials', 'true')
+    } else {
+      response.header('Access-Control-Allow-Origin', '*')
+    }
+
     if (!dateStr) {
       return response.badRequest({ error: 'Date is required' })
     }
@@ -240,7 +249,16 @@ export default class BookingController {
 
   async createBooking({ params, request, response, session }: HttpContext) {
     const isJsonRequest = request.header('Content-Type')?.includes('application/json')
-    
+
+    // Add CORS headers for embed widget
+    const origin = request.header('origin')
+    if (origin) {
+      response.header('Access-Control-Allow-Origin', origin)
+      response.header('Access-Control-Allow-Credentials', 'true')
+    } else {
+      response.header('Access-Control-Allow-Origin', '*')
+    }
+
     const business = await Business.query()
       .where('slug', params.slug)
       .where('isActive', true)
@@ -317,7 +335,7 @@ export default class BookingController {
       })
 
       const paymentUrl = `/book/${params.slug}/booking/${booking.id}/payment`
-      
+
       if (isJsonRequest) {
         return response.json({ success: true, redirect: paymentUrl })
       }
@@ -460,7 +478,7 @@ export default class BookingController {
 
       const appUrl = env.get('APP_URL', `https://${env.get('APP_DOMAIN', 'fastappoint.com')}`)
       const manageUrl = `${appUrl}/book/${params.slug}/booking/${booking.id}/manage`
-      
+
       await emailService.sendBookingConfirmation({
         customerName: booking.customerName,
         customerEmail: booking.customerEmail,
@@ -607,7 +625,7 @@ export default class BookingController {
     })
   }
 
-  async showReschedule({ params, view, response, request }: HttpContext) {
+  async showReschedule({ params, view, response }: HttpContext) {
     const booking = await Booking.query()
       .where('id', params.bookingId)
       .preload('business', (query) => {
@@ -681,12 +699,39 @@ export default class BookingController {
         return response.redirect().back()
       }
 
+      // Store old date and time for email notification
+      const oldDate = booking.date.toFormat('EEEE, MMMM d, yyyy')
+      const oldTime = `${booking.startTime} - ${booking.endTime}`
+
       booking.date = selectedDate
       booking.startTime = data.time
       booking.endTime = endTime
       await booking.save()
 
-    session.flash('success', 'Booking rescheduled successfully')
+      // Reload booking with relations for email
+      await booking.load('service')
+      await booking.load('business')
+
+      // Send email notifications
+      const newDate = selectedDate.toFormat('EEEE, MMMM d, yyyy')
+      const newTime = `${data.time} - ${endTime}`
+      const appUrl = env.get('APP_URL', `https://${env.get('APP_DOMAIN', 'fastappoint.com')}`)
+      const manageUrl = `${appUrl}/book/${params.slug}/booking/${booking.id}/manage`
+
+      await emailService.sendBookingRescheduleNotification({
+        customerName: booking.customerName,
+        customerEmail: booking.customerEmail,
+        businessName: booking.business.name,
+        businessEmail: booking.business.email,
+        serviceName: booking.service.name,
+        oldDate,
+        oldTime,
+        newDate,
+        newTime,
+        manageUrl,
+      })
+
+      session.flash('success', 'Booking rescheduled successfully')
       return response.redirect().toRoute('book.manage', {
         slug: params.slug,
         bookingId: booking.id,
@@ -698,5 +743,38 @@ export default class BookingController {
       }
       throw error
     }
+  }
+
+  async embed({ params, view, response, request }: HttpContext) {
+    const business = await Business.query()
+      .where('slug', params.slug)
+      .where('isActive', true)
+      .where('isOnboarded', true)
+      .preload('services', (query) => {
+        query.where('isActive', true).orderBy('sortOrder').preload('staff', (staffQuery) => {
+          staffQuery.where('isActive', true)
+        })
+      })
+      .preload('availabilities', (query) => query.where('isActive', true))
+      .preload('theme')
+      .first()
+
+    if (!business) {
+      return response.status(404).send('Business not found')
+    }
+
+    const theme = business.theme
+    const staff = await User.query()
+      .where('businessId', business.id)
+      .where('isActive', true)
+      .where('role', 'staff')
+
+    return view.render('pages/book/embed', {
+      business,
+      theme,
+      services: business.services,
+      staff,
+      csrfToken: request.csrfToken,
+    })
   }
 }

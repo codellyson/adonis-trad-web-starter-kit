@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ business.name }} - Book Appointment</title>
+  <link rel="preconnect" href="https://fonts.bunny.net" />
+  <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
+  @if(theme)
+    <link href="{{ theme.getGoogleFontsUrl() }}" rel="stylesheet" />
+  @endif
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          },
+          colors: {
+            primary: {
+              DEFAULT: '{{ theme?.primaryColor || "#2563eb" }}',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root {
+      {{ theme?.getCssVariables() || `
+        --theme-primary: #2563eb;
+        --theme-secondary: #f8fafc;
+        --theme-accent: #f59e0b;
+        --theme-text: #1c1917;
+        --theme-background: #ffffff;
+        --theme-font-heading: 'Inter', sans-serif;
+        --theme-font-body: 'Inter', sans-serif;
+      ` }}
+    }
+    body {
+      font-family: var(--theme-font-body);
+      color: var(--theme-text);
+      background-color: var(--theme-background);
+      margin: 0;
+      padding: 0;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--theme-font-heading);
+    }
+    .btn-primary {
+      background-color: var(--theme-primary);
+      border-radius: 0.75rem;
+    }
+    .btn-primary:hover {
+      opacity: 0.9;
+    }
+    .card {
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    {{ theme?.customCss || '' }}
+    [x-cloak] { display: none !important; }
+  </style>
+</head>
+<body class="min-h-screen" x-data="bookingApp()">
+  <div class="max-w-2xl mx-auto px-4 py-6">
+    <div class="card p-6 rounded-xl">
+      <div class="flex items-center gap-4 mb-6">
+        @if(business.logo)
+          <img src="{{ business.logo }}" alt="{{ business.name }}" class="w-16 h-16 rounded-xl object-cover" />
+        @else
+          <div class="w-16 h-16 rounded-xl flex items-center justify-center text-2xl font-bold text-white" style="background-color: var(--theme-primary)">
+            {{ business.name.charAt(0) }}
+          </div>
+        @endif
+        <div>
+          <h2 class="text-xl font-bold">{{ business.name }}</h2>
+          <p class="text-sm opacity-70">Book an appointment</p>
+        </div>
+      </div>
+
+      <div x-show="!selectedService" class="space-y-4">
+        <h3 class="font-semibold text-lg mb-4">Select a Service</h3>
+        @each(service in services)
+          <div 
+            class="p-4 border-2 rounded-xl cursor-pointer transition-all hover:border-primary"
+            :class="{ 'border-primary': selectedService?.id === {{ service.id }} }"
+            @click="selectService({{ service.id }}, '{{ service.name }}', {{ service.price }}, {{ service.durationMinutes || 30 }})"
+          >
+            <div class="flex justify-between items-start">
+              <div>
+                <h4 class="font-semibold">{{ service.name }}</h4>
+                @if(service.description)
+                  <p class="text-sm opacity-70 mt-1">{{ service.description }}</p>
+                @endif
+                <p class="text-sm opacity-60 mt-2">{{ service.durationMinutes || 30 }} minutes</p>
+              </div>
+              <div class="text-right">
+                <p class="text-lg font-bold" style="color: var(--theme-primary)">₦{{ Number(service.price).toLocaleString() }}</p>
+              </div>
+            </div>
+          </div>
+        @end
+      </div>
+
+      <div x-show="selectedService" x-cloak class="space-y-4">
+        <div class="p-3 rounded-lg" style="background-color: var(--theme-secondary)">
+          <p class="font-medium" x-text="selectedService?.name"></p>
+          <p class="text-sm opacity-70"><span x-text="selectedService?.duration"></span> min • ₦<span x-text="selectedService?.price?.toLocaleString()"></span></p>
+        </div>
+
+        @if(staff.length > 1)
+          <div>
+            <label class="block text-sm font-medium mb-2">Select Staff (Optional)</label>
+            <select x-model="selectedStaffId" @change="selectedDate && fetchTimeSlots()" class="w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20" style="border-color: var(--theme-secondary)">
+              <option value="">Any available</option>
+              @each(member in staff)
+                <option value="{{ member.id }}">{{ member.fullName }}</option>
+              @end
+            </select>
+          </div>
+        @endif
+
+        <div class="date-picker-container" x-data="{ datePickerOpen: false }">
+          <button
+            type="button"
+            @click="datePickerOpen = !datePickerOpen"
+            class="w-full px-4 py-3.5 border-2 rounded-xl bg-white text-left flex items-center justify-between gap-3 hover:border-primary transition-all"
+            :style="datePickerOpen ? 'border-color: var(--theme-primary)' : 'border-color: var(--theme-secondary)'"
+          >
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background-color: var(--theme-secondary)">
+                <svg class="w-5 h-5" style="color: var(--theme-primary)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-xs opacity-60 font-medium">Select Date</p>
+                <p class="font-semibold" x-text="selectedDate ? formatDisplayDate(selectedDate) : 'Pick a date'"></p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 opacity-50 transition-transform" :class="{ 'rotate-180': datePickerOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+
+          <div
+            x-show="datePickerOpen"
+            x-cloak
+            @click.away="datePickerOpen = false"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 -translate-y-2"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            class="mt-2 bg-white border-2 rounded-xl shadow-xl overflow-hidden z-50"
+            style="border-color: var(--theme-secondary)"
+          >
+            <div class="p-4">
+              <div class="flex items-center justify-between mb-4">
+                <button @click="prevCalMonth()" type="button" class="p-2 hover:opacity-70 rounded-lg transition-opacity">
+                  <svg class="w-5 h-5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                  </svg>
+                </button>
+                <h3 class="font-bold" x-text="calMonthYearDisplay"></h3>
+                <button @click="nextCalMonth()" type="button" class="p-2 hover:opacity-70 rounded-lg transition-opacity">
+                  <svg class="w-5 h-5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="grid grid-cols-7 gap-1 mb-2">
+                <template x-for="day in ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']" :key="day">
+                  <div class="text-center text-xs font-medium opacity-50 py-2" x-text="day"></div>
+                </template>
+              </div>
+
+              <div class="grid grid-cols-7 gap-1">
+                <template x-for="(day, index) in calendarDays" :key="index">
+                  <button
+                    type="button"
+                    @click="day.date && !day.disabled && pickDate(day.date)"
+                    :disabled="!day.date || day.disabled"
+                    :class="{
+                      'font-bold': day.selected,
+                      'hover:opacity-70': day.date && !day.disabled && !day.selected,
+                      'opacity-30 cursor-not-allowed': day.disabled,
+                      'opacity-0': !day.date,
+                      'ring-2 ring-offset-1': day.today && !day.selected
+                    }"
+                    :style="day.selected ? 'background-color: var(--theme-primary); color: white' : day.today ? 'ring-color: var(--theme-primary)' : ''"
+                    class="aspect-square rounded-lg flex items-center justify-center text-sm transition-all"
+                    x-text="day.day || ''"
+                  ></button>
+                </template>
+              </div>
+            </div>
+
+            <div class="border-t px-4 py-2.5 flex items-center justify-between" style="border-color: var(--theme-secondary); background-color: var(--theme-secondary)">
+              <button @click="goToToday()" type="button" class="text-sm font-medium hover:opacity-70" style="color: var(--theme-primary)">Today</button>
+              <button @click="selectedDate = ''; datePickerOpen = false; selectedTime = ''; timeSlots = []" type="button" class="text-sm opacity-60 hover:opacity-80">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <div x-show="selectedDate && !loadingSlots" x-cloak>
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color: var(--theme-secondary)">
+              <svg class="w-4 h-4" style="color: var(--theme-primary)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <p class="text-sm font-medium">Select Time</p>
+          </div>
+          
+          <div x-show="timeSlots.length === 0" class="text-center py-6 rounded-xl" style="background-color: var(--theme-secondary)">
+            <svg class="w-10 h-10 mx-auto mb-2 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p class="text-sm opacity-60">No available slots for this date</p>
+          </div>
+
+          <div x-show="timeSlots.length > 0" class="space-y-3">
+            <div class="flex flex-wrap gap-1.5">
+              <button type="button" @click="timeFilter = 'all'" :class="timeFilter === 'all' ? 'opacity-100' : 'opacity-50 hover:opacity-70'" :style="timeFilter === 'all' ? 'background-color: var(--theme-primary); color: white' : ''" class="px-3 py-1.5 text-xs font-medium rounded-full transition-all">All</button>
+              <button type="button" @click="timeFilter = 'morning'" :class="timeFilter === 'morning' ? 'opacity-100' : 'opacity-50 hover:opacity-70'" :style="timeFilter === 'morning' ? 'background-color: var(--theme-primary); color: white' : ''" class="px-3 py-1.5 text-xs font-medium rounded-full transition-all">🌅 AM</button>
+              <button type="button" @click="timeFilter = 'afternoon'" :class="timeFilter === 'afternoon' ? 'opacity-100' : 'opacity-50 hover:opacity-70'" :style="timeFilter === 'afternoon' ? 'background-color: var(--theme-primary); color: white' : ''" class="px-3 py-1.5 text-xs font-medium rounded-full transition-all">☀️ Noon</button>
+              <button type="button" @click="timeFilter = 'evening'" :class="timeFilter === 'evening' ? 'opacity-100' : 'opacity-50 hover:opacity-70'" :style="timeFilter === 'evening' ? 'background-color: var(--theme-primary); color: white' : ''" class="px-3 py-1.5 text-xs font-medium rounded-full transition-all">🌙 PM</button>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1">
+              <template x-for="slot in filteredTimeSlots" :key="slot.time">
+                <button
+                  type="button"
+                  @click="slot.available && (selectedTime = slot.time)"
+                  :disabled="!slot.available"
+                  :class="{ 
+                    'ring-2 ring-offset-1 font-bold': selectedTime === slot.time,
+                    'opacity-30 cursor-not-allowed line-through': !slot.available
+                  }"
+                  :style="selectedTime === slot.time ? 'background-color: var(--theme-primary); color: white; ring-color: var(--theme-primary)' : ''"
+                  class="relative px-2 py-2.5 text-sm rounded-lg border transition-all hover:opacity-80"
+                  x-text="formatTime(slot.time)"
+                ></button>
+              </template>
+            </div>
+
+            <div x-show="filteredTimeSlots.length === 0" class="text-center py-4">
+              <p class="text-sm opacity-60">No slots for this period</p>
+            </div>
+          </div>
+        </div>
+
+        <div x-show="loadingSlots" class="flex items-center justify-center py-6">
+          <div class="flex items-center gap-3">
+            <div class="animate-spin w-5 h-5 border-2 border-t-transparent rounded-full" style="border-color: var(--theme-primary); border-top-color: transparent"></div>
+            <span class="text-sm opacity-60">Loading times...</span>
+          </div>
+        </div>
+
+        <div x-show="selectedTime" class="space-y-3">
+          <input type="text" x-model="customerName" placeholder="Your Name" class="w-full px-4 py-2.5 border rounded-lg" style="border-color: var(--theme-secondary)" required />
+          <input type="email" x-model="customerEmail" placeholder="Email Address" class="w-full px-4 py-2.5 border rounded-lg" style="border-color: var(--theme-secondary)" required />
+          <input type="tel" x-model="customerPhone" placeholder="Phone Number" class="w-full px-4 py-2.5 border rounded-lg" style="border-color: var(--theme-secondary)" />
+        </div>
+
+        <button
+          x-show="selectedTime && customerName && customerEmail"
+          @click="submitBooking()"
+          :disabled="submitting"
+          class="btn-primary w-full py-3 text-white font-semibold transition-all"
+        >
+          <span x-show="!submitting">Book Now</span>
+          <span x-show="submitting">Processing...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script>
+    function bookingApp() {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      
+      // Get base URL from current location
+      const baseUrl = window.location.origin
+      const businessSlug = '{{ business.slug }}'
+      
+      return {
+        selectedService: null,
+        selectedStaffId: '',
+        selectedDate: '',
+        selectedTime: '',
+        timeSlots: [],
+        loadingSlots: false,
+        customerName: '',
+        customerEmail: '',
+        customerPhone: '',
+        submitting: false,
+        minDate: new Date().toISOString().split('T')[0],
+        calMonth: today.getMonth(),
+        calYear: today.getFullYear(),
+        timeFilter: 'all',
+
+        selectService(id, name, price, duration) {
+          this.selectedService = { id, name, price, duration }
+          this.selectedTime = ''
+          this.timeSlots = []
+          if (this.selectedDate) {
+            this.fetchTimeSlots()
+          }
+        },
+
+        async fetchTimeSlots() {
+          if (!this.selectedService || !this.selectedDate) return
+          this.loadingSlots = true
+          this.timeSlots = []
+          try {
+            let url = `${baseUrl}/book/${businessSlug}/service/${this.selectedService.id}/slots?date=${this.selectedDate}`
+            if (this.selectedStaffId) {
+              url += `&staffId=${this.selectedStaffId}`
+            }
+            const res = await fetch(url)
+            const data = await res.json()
+            this.timeSlots = data.slots || []
+          } catch (e) {
+            console.error(e)
+          }
+          this.loadingSlots = false
+        },
+
+        formatTime(time) {
+          if (!time) return ''
+          const [h, m] = time.split(':')
+          const hour = parseInt(h)
+          const suffix = hour >= 12 ? 'PM' : 'AM'
+          const displayHour = hour % 12 || 12
+          return `${displayHour}:${m} ${suffix}`
+        },
+
+        formatDisplayDate(dateStr) {
+          if (!dateStr) return ''
+          const date = new Date(dateStr + 'T00:00:00')
+          return date.toLocaleDateString('en-US', { 
+            weekday: 'short',
+            month: 'short', 
+            day: 'numeric'
+          })
+        },
+
+        get calMonthYearDisplay() {
+          return new Date(this.calYear, this.calMonth).toLocaleDateString('en-US', { 
+            month: 'long', 
+            year: 'numeric' 
+          })
+        },
+
+        get calendarDays() {
+          const days = []
+          const firstDay = new Date(this.calYear, this.calMonth, 1)
+          const lastDay = new Date(this.calYear, this.calMonth + 1, 0)
+          const startingDay = firstDay.getDay()
+          const todayDate = new Date()
+          todayDate.setHours(0, 0, 0, 0)
+
+          for (let i = 0; i < startingDay; i++) {
+            days.push({ date: null, day: null })
+          }
+
+          for (let i = 1; i <= lastDay.getDate(); i++) {
+            const date = new Date(this.calYear, this.calMonth, i)
+            const dateStr = this.formatDateValue(date)
+            const isPast = date < todayDate
+
+            days.push({
+              date: dateStr,
+              day: i,
+              disabled: isPast,
+              today: date.getTime() === todayDate.getTime(),
+              selected: dateStr === this.selectedDate
+            })
+          }
+
+          return days
+        },
+
+        get filteredTimeSlots() {
+          if (this.timeFilter === 'all') return this.timeSlots
+          
+          return this.timeSlots.filter(slot => {
+            const hour = parseInt(slot.time.split(':')[0])
+            if (this.timeFilter === 'morning') return hour >= 6 && hour < 12
+            if (this.timeFilter === 'afternoon') return hour >= 12 && hour < 17
+            if (this.timeFilter === 'evening') return hour >= 17 && hour < 24
+            return true
+          })
+        },
+
+        formatDateValue(date) {
+          const year = date.getFullYear()
+          const month = String(date.getMonth() + 1).padStart(2, '0')
+          const day = String(date.getDate()).padStart(2, '0')
+          return `${year}-${month}-${day}`
+        },
+
+        pickDate(dateStr) {
+          this.selectedDate = dateStr
+          this.datePickerOpen = false
+          this.selectedTime = ''
+          this.timeSlots = []
+          this.fetchTimeSlots()
+        },
+
+        prevCalMonth() {
+          if (this.calMonth === 0) {
+            this.calMonth = 11
+            this.calYear--
+          } else {
+            this.calMonth--
+          }
+        },
+
+        nextCalMonth() {
+          if (this.calMonth === 11) {
+            this.calMonth = 0
+            this.calYear++
+          } else {
+            this.calMonth++
+          }
+        },
+
+        goToToday() {
+          const todayDate = new Date()
+          this.calMonth = todayDate.getMonth()
+          this.calYear = todayDate.getFullYear()
+          const dateStr = this.formatDateValue(todayDate)
+          this.pickDate(dateStr)
+        },
+
+        async submitBooking() {
+          if (this.submitting) return
+          this.submitting = true
+          try {
+            const res = await fetch(`${baseUrl}/book/${businessSlug}/service/${this.selectedService.id}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrfToken }}'
+              },
+              body: JSON.stringify({
+                date: this.selectedDate,
+                time: this.selectedTime,
+                customerName: this.customerName,
+                customerEmail: this.customerEmail,
+                customerPhone: this.customerPhone,
+                staffId: this.selectedStaffId || undefined
+              })
+            })
+            const data = await res.json()
+            if (data.error) {
+              alert(data.error)
+            } else if (data.redirect) {
+              // For embedded widget, open payment in new window or redirect parent
+              if (window.parent !== window) {
+                window.parent.location.href = data.redirect
+              } else {
+                window.location.href = data.redirect
+              }
+            }
+          } catch (e) {
+            console.error(e)
+            alert('Something went wrong. Please try again.')
+          }
+          this.submitting = false
+        }
+      }
+    }
+  </script>
+</body>
+</html>
+
